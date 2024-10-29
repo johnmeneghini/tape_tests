@@ -1,7 +1,6 @@
 #!/bin/bash
-#
-# Must be run as root
-# Author: John Meneghini <jmeneghi@redhat.com>
+# SPDX-License-Identifier: GPL-3.0+
+# Copyright (C) 2024 John Meneghini <jmeneghi@redhat.com> All rights reserved.
 #
 
 if [ $# -lt 2 -o $# -gt 2 ]

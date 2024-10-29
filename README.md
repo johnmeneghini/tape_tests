@@ -16,8 +16,9 @@ on your tape drive.
 
 ## Quick start
 
+Example:
+
 ```
-  sudo bash 
   dnf install -y git, lsscsi, mt-st, sg3_utils
   git clone https://github.com/johnmeneghini/tape_tests.git
   cd tape_tests
@@ -44,4 +45,3 @@ on your tape drive.
 [6:0:0:0]    tape    QUANTUM  ULTRIUM 4        U53F  /dev/st0   -  /dev/sg1
 [6:0:1:0]    enclosu LSI      virtualSES       02    -          -  /dev/sg2
 ```
-**END**
