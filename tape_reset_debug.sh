@@ -33,7 +33,7 @@ DEBUG="$3"
 echo ""
 uname -r
 
-if [ "$DEBUG" -eq 1 ]; then
+if [ "$DEBUG" -gt 0 ]; then
 	echo 1 > /sys/module/st/drivers/scsi\:st/debug_flag
 else
 	echo 0 > /sys/module/st/drivers/scsi\:st/debug_flag
@@ -51,6 +51,7 @@ fi
 modprobe -r scsi_debug
 modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=4 dev_size_mb=1000
 lsscsi -ig
+echo ""
 
 DEV="$1"
 SDEV="$2"
@@ -181,5 +182,9 @@ done
 ##    echo " status $?"
 #    echo =================================================================
 ##done
+
+echo ""
+echo "Done"
+echo ""
 
 ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
