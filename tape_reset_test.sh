@@ -60,9 +60,8 @@ if [ "$DEBUG" -gt 1 ]; then
 fi
 
 echo ""
-
-uname -r
 lsscsi -ig
+echo ""
 
 if [ "$DEBUG" -gt 0 ]; then
 	echo 1 > /sys/module/st/drivers/scsi\:st/debug_flag
@@ -72,6 +71,8 @@ fi
 
 echo -n "/sys/module/st/drivers/scsi\:st/debug_flag : "
 cat /sys/module/st/drivers/scsi\:st/debug_flag
+echo ""
+uname -r
 echo ""
 
 set -e
@@ -88,6 +89,8 @@ dd if=/dev/random count=1001024 of=$DEV
 mt -f $DEV rewind
 mt -f $DEV status
 dd if=$DEV count=1024 of=/dev/null
+mt -f $DEV fsf 1
+mt -f $DEV status
 dd if=$DEV count=1024 of=/dev/null
 mt -f $DEV status
 mt -f $DEV eod
@@ -149,7 +152,7 @@ dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $
 # retension should succeed after reset
 #
 mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV retention || echo "---TEST FAILED--- with status $?"
+mt -f $DEV rretension || echo "---TEST FAILED--- with status $?"
 mt -f $DEV status || echo "---TEST FAILED--- with status $?"
 mt -f $DEV eod || echo "---TEST FAILED--- with status $?"
 mt -f $DEV status || echo "---TEST FAILED--- with status $?"
