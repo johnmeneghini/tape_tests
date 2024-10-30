@@ -152,7 +152,7 @@ dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $
 # retension should succeed after reset
 #
 mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV rretension || echo "---TEST FAILED--- with status $?"
+mt -f $DEV retension || echo "---TEST FAILED--- with status $?"
 mt -f $DEV status || echo "---TEST FAILED--- with status $?"
 mt -f $DEV eod || echo "---TEST FAILED--- with status $?"
 mt -f $DEV status || echo "---TEST FAILED--- with status $?"
