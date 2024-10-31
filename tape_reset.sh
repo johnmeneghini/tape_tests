@@ -24,7 +24,6 @@ if [ ! -c $DEV ]; then
   exit 1
 fi
 
-echo "sleeping $SLEEP seconds"
 sleep $SLEEP
 echo "sg_reset --target $DEV"
 sg_reset --target $DEV

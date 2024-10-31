@@ -9,6 +9,18 @@
 # This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive.
 #
 
+do_cmd_true() {
+echo  ""
+echo  "$1"
+$1 || echo "--- $1 TEST FAILED--- with status $?"
+}
+
+do_cmd_false() {
+echo  ""
+echo  "$1"
+$1 && echo "--- $1 TEST FAILED--- with status $?"
+}
+
 if [ $# -lt 3 -o $# -gt 3 ]
 then
   echo ""
@@ -76,19 +88,18 @@ uname -r
 echo ""
 
 set +e
-set -v
 
 #
 # Write two files on the tape
 #
-mt -f $DEV status || echo "--- status TEST FAILED--- with status $?"
-mt -f $DEV rewind || echo "--- rewind TEST FAILED--- with status $?"
-mt -f $DEV status || echo "--- status TEST FAILED--- with status $?"
-dd if=/dev/random count=1001024 of=$DEV || echo "--- write TEST FAILED--- with status $?"
-dd if=/dev/random count=1001024 of=$DEV || echo "--- write TEST FAILED--- with status $?"
-mt -f $DEV rewind || echo "--- rewind TEST FAILED--- with status $?"
-mt -f $DEV eod || echo "--- eod TEST FAILED--- with status $?"
-mt -f $DEV status || echo "--- status TEST FAILED--- with status $?"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "dd if=/dev/random count=1001024 of=$DEV "
+do_cmd_true "dd if=/dev/random count=1001024 of=$DEV "
+do_cmd_true "mt -f $DEV rewind "
+do_cmd_true "mt -f $DEV eod  "
+do_cmd_true "mt -f $DEV status" 
 
 #
 # Reset the device with tape at EOD
@@ -99,20 +110,18 @@ sleep 5
 #
 # These commands should fail
 #
-dd if=/dev/random count=1001024 of=$DEV && echo "--- write TEST FAILED--- with status $?"
-mt -f $DEV weof 1 && echo "--- weof TEST FAILED--- with status $?"
-mt -f $DEV wset 1 && echo "--- wset TEST FAILED--- with status $?"
-dd if=$DEV count=1024 of=/dev/null && echo "--- read TEST FAILED--- with status $?"
-dd if=/dev/random count=1001024 of=$DEV && echo "--- write TEST FAILED--- with status $?"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "mt -f $DEV weof 1"
+do_cmd_false "mt -f $DEV wset 1"
+do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 
 #
 # These command should succeed
 #
-mt -f $DEV status || echo "--- status TEST FAILED--- with status $?"
-mt -f $DEV rewind || echo "--- rewind TEST FAILED--- with status $?"
-mt -f $DEV status || echo "--- status TEST FAILED--- with status $?"
-
-set +v
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status"
 
 echo ""
 echo "Done"

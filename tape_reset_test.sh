@@ -9,6 +9,18 @@
 # This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive.
 #
 
+do_cmd_true() {
+echo  ""
+echo  "$1"
+$1 || echo "--- $1 TEST FAILED--- with status $?"
+}
+
+do_cmd_false() {
+echo  ""
+echo  "$1"
+$1 && echo "--- $1 TEST FAILED--- with status $?"
+}
+
 if [ $# -lt 3 -o $# -gt 3 ]
 then
   echo ""
@@ -75,28 +87,25 @@ echo ""
 uname -r
 echo ""
 
-set -e
-set -v
+set +e
 
 #
 # Write two files on the tape and make sure we can read them
 #
-mt -f $DEV status
-mt -f $DEV rewind
-mt -f $DEV status
-dd if=/dev/random count=1001024 of=$DEV
-dd if=/dev/random count=1001024 of=$DEV
-mt -f $DEV rewind
-mt -f $DEV status
-dd if=$DEV count=1024 of=/dev/null
-mt -f $DEV fsf 1
-mt -f $DEV status
-dd if=$DEV count=1024 of=/dev/null
-mt -f $DEV status
-mt -f $DEV eod
-mt -f $DEV status
-
-set +e
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_true "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_true "mt -f $DEV rewind "
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_true "mt -f $DEV fsf 1"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV status"
 
 #
 # Reset the device with IO inprogress
@@ -106,20 +115,20 @@ $PWD/tape_reset.sh $SDEV 5 &
 #
 # These commands should fail
 #
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
-mt -f $DEV weof 1 && echo "---TEST FAILED--- with status $?"
-mt -f $DEV wset 1 && echo "---TEST FAILED--- with status $?"
-dd if=$DEV count=1024 of=/dev/null && echo "---TEST FAILED--- with status $?"
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV "
+do_cmd_false "mt -f $DEV weof 1 "
+do_cmd_flase "mt -f $DEV wset 1"
+do_cmd_flase "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_flase "dd if=/dev/random count=1001024 of=$DEV"
 
 #
 # These command should succeed
 #
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV rewind || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV eod || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV status"
 
 #
 # Reset the device with IO inprogress
@@ -129,14 +138,14 @@ $PWD/tape_reset.sh $SDEV 5 &
 #
 # This command should fail
 #
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 
 #
 # Seek should succeed after reset
 #
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV eod || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV status"
 
 #
 # Reset the device with IO inprogress
@@ -146,16 +155,16 @@ $PWD/tape_reset.sh $SDEV 5 &
 #
 # This command should fail
 #
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 
 #
 # retension should succeed after reset
 #
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV retension || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV eod || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
+do_cmd_false "mt -f $DEV status"
+do_cmd_false "mt -f $DEV retension"
+do_cmd_false "mt -f $DEV status"
+do_cmd_false "mt -f $DEV eod"
+do_cmd_false "mt -f $DEV status"
 
 #
 # Reset the device with IO inprogress
@@ -165,14 +174,14 @@ $PWD/tape_reset.sh $SDEV 5 &
 #
 # This command should fail
 #
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 
 #
 # eject should succeed after reset
 #
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV eject || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV eject"
+do_cmd_true "mt -f $DEV status"
 
 #
 # Reset the device with no tape
@@ -183,25 +192,25 @@ sleep 3
 #
 # Status should succeed
 #
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
+do_cmd_true "mt -f $DEV status"
 
 #
 # These command fail when there's no tape.
 #
-mt -f $DEV weof 1 && echo "---TEST FAILED--- with status $?"
-mt -f $DEV wset 1 && echo "---TEST FAILED--- with status $?"
-mt -f $DEV eod && echo "---TEST FAILED--- with status $?"
-dd if=$DEV count=1024 of=/dev/null && echo "---TEST FAILED--- with status $?"
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
+do_cmd_false "mt -f $DEV weof 1"
+do_cmd_false "mt -f $DEV wset 1"
+do_cmd_false "mt -f $DEV eod"
+do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 
 #
 # Load the tape should succed
 #
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV load || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV eod || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV load"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV status"
 
 #
 # Reset the device with tape at EOD
@@ -212,18 +221,18 @@ sleep 3
 #
 # These commands should fail
 #
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
-mt -f $DEV weof 1 && echo "---TEST FAILED--- with status $?"
-mt -f $DEV wset 1 && echo "---TEST FAILED--- with status $?"
-dd if=$DEV count=1024 of=/dev/null && echo "---TEST FAILED--- with status $?"
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "mt -f $DEV weof 1"
+do_cmd_false "mt -f $DEV wset 1"
+do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 
 #
 # These command should succeed
 #
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV rewind || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status"
 
 #
 # Reset the device while at BOT
@@ -234,20 +243,18 @@ sleep 3
 #
 # These commands should fail
 #
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
-mt -f $DEV weof 1 && echo "---TEST FAILED--- with status $?"
-mt -f $DEV wset 1 && echo "---TEST FAILED--- with status $?"
-dd if=$DEV count=1024 of=/dev/null && echo "---TEST FAILED--- with status $?"
-dd if=/dev/random count=1001024 of=$DEV && echo "---TEST FAILED--- with status $?"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "mt -f $DEV weof 1"
+do_cmd_false "mt -f $DEV wset 1"
+do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 
 #
 # Done, rewind the tape
 #
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-mt -f $DEV rewind || echo "---TEST FAILED--- with status $?"
-mt -f $DEV status || echo "---TEST FAILED--- with status $?"
-
-set +v
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status"
 
 echo ""
 echo "Done"
