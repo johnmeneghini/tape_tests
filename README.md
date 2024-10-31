@@ -8,6 +8,9 @@ time of this writing three scripts are included:
 1. tape_reset.sh - called by other tests to reset the tape device with sg_reset.
 2. tape_reset_test.sh - use to test sg_reset with a physical tape drive.
 3. tape_reset_debug.sh - used to test the st driver with scsi_debug
+4. tape_reset_eod.sh - reset tape while at eod and then write
+5. tape_reset_load.sh - reset and then load tape
+6. tape_reset_status.sh - reset and then send status
 
 *NOTE: The scripts used in this repository are all designed to be run from a
 root account. It is not advised to run these scripts on a production machine

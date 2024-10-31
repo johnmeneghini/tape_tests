@@ -90,20 +90,29 @@ echo ""
 set +e
 
 #
-# Write two files on the tape and make sure we can read them
+# Write two files on the tape
 #
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"
-do_cmd_true "dd if=/dev/random count=1001024 of=$DEV"
-do_cmd_true "dd if=/dev/random count=1001024 of=$DEV"
-do_cmd_true "mt -f $DEV rewind "
-do_cmd_true "mt -f $DEV status"
+do_cmd_true "dd if=/dev/random count=1001024 of=$DEV "
+do_cmd_true "dd if=/dev/random count=1001024 of=$DEV "
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_true "mt -f $DEV fsf 1"
 do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
 do_cmd_true "mt -f $DEV fsf 1"
 do_cmd_true "mt -f $DEV status"
-do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
+
+#
+# Check to be sure there's nothing more than two files on tape
+#
+do_cmd_false "mt -f $DEV fsf 1"
 do_cmd_true "mt -f $DEV status"
+
+#
+# Go to EOD
+#
 do_cmd_true "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV status"
 
@@ -131,98 +140,27 @@ do_cmd_true "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV status"
 
 #
-# Reset the device with IO inprogress
-#
-$PWD/tape_reset.sh $SDEV 5 &
-
-#
-# This command should fail
-#
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
-
-#
-# Seek should succeed after reset
-#
-do_cmd_true "mt -f $DEV status"
-do_cmd_true "mt -f $DEV eod"
-do_cmd_true "mt -f $DEV status"
-
-#
-# Reset the device with IO inprogress
-#
-$PWD/tape_reset.sh $SDEV 5 &
-
-#
-# This command should fail
-#
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
-
-#
-# retension should succeed after reset
-#
-do_cmd_true "mt -f $DEV status"
-do_cmd_true "mt -f $DEV retension"
-do_cmd_true "mt -f $DEV status"
-do_cmd_true "mt -f $DEV eod"
-do_cmd_true "mt -f $DEV status"
-
-#
-# Reset the device with IO inprogress
-#
-$PWD/tape_reset.sh $SDEV 5 &
-
-#
-# This command should fail
-#
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
-
-#
-# eject should succeed after reset
-#
-do_cmd_true "mt -f $DEV status"
-do_cmd_true "mt -f $DEV eject"
-do_cmd_true "mt -f $DEV status"
-
-#
-# Reset the device with no tape
-#
-$PWD/tape_reset.sh $SDEV 1 &
-sleep 3
-
-#
-# Status should succeed
-#
-do_cmd_true "mt -f $DEV status"
-
-#
-# These command fail when there's no tape.
-#
-do_cmd_false "mt -f $DEV weof 1"
-do_cmd_false "mt -f $DEV wset 1"
-do_cmd_false "mt -f $DEV eod"
-do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
-
-#
-# Load the tape should succed
-#
-do_cmd_true "mt -f $DEV status"
-do_cmd_true "mt -f $DEV load"
-do_cmd_true "mt -f $DEV status"
-do_cmd_true "mt -f $DEV eod"
-do_cmd_true "mt -f $DEV status"
-
-#
 # Reset the device with tape at EOD
 #
 $PWD/tape_reset.sh $SDEV 1 &
-sleep 3
+sleep 5
+
+#
+# This command should fail
+#
+do_cmd_false "mt -f $DEV status"
+
+#
+# These command should succeed
+#
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV status"
 
 #
 # These commands should fail
 #
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
-do_cmd_false "mt -f $DEV weof 1"
+do_cmd_false "dd if=/dev/random count=1001024 of=$DEV "
+do_cmd_false "mt -f $DEV weof 1 "
 do_cmd_false "mt -f $DEV wset 1"
 do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
@@ -233,27 +171,33 @@ do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"
-
-#
-# Reset the device while at BOT
-#
-$PWD/tape_reset.sh $SDEV 1 &
-sleep 3
-
-#
-# These commands should fail
-#
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
-do_cmd_false "mt -f $DEV weof 1"
-do_cmd_false "mt -f $DEV wset 1"
-do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
-
-#
-# Done, rewind the tape
-#
+do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_true "mt -f $DEV fsf 1"
+do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
+do_cmd_true "mt -f $DEV fsf 1"
 do_cmd_true "mt -f $DEV status"
-do_cmd_true "mt -f $DEV rewind"
+
+#
+# Check to be sure there's nothing more than two files on tape
+#
+do_cmd_false "mt -f $DEV fsf 1"
+do_cmd_true "mt -f $DEV status"
+
+#
+# Go to EOD
+#
+do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV status"
+
+#
+# These commands should succeed
+#
+do_cmd_true "mt -f $DEV bsf 1"
+do_cmd_true "mt -f $DEV bsf 1"
+
+#
+# This should fail because we are at  BOT
+do_cmd_false "mt -f $DEV bsf 1"
 do_cmd_true "mt -f $DEV status"
 
 echo ""
