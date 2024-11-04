@@ -155,6 +155,7 @@ do_cmd_false "mt -f $DEV status"
 #
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV status"
 
 #
 # These commands should fail
@@ -169,8 +170,18 @@ do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 # These command should succeed
 #
 do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV status"
+
+#
+# This should clear the condition
+#
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"
+
+#
+# These commands should succeed
+#
 do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
 do_cmd_true "mt -f $DEV fsf 1"
 do_cmd_true "dd if=$DEV count=1024 of=/dev/null"
@@ -198,6 +209,11 @@ do_cmd_true "mt -f $DEV bsf 1"
 #
 # This should fail because we are at  BOT
 do_cmd_false "mt -f $DEV bsf 1"
+
+#
+# These commands should fail
+#
+do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV status"
 
 echo ""
