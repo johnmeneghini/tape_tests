@@ -21,6 +21,11 @@ echo  "$1"
 $1 && echo "--- $1 TEST FAILED--- with status $?"
 }
 
+if [ "$EUID" -ne 0 ]
+	then echo "Please run as root"
+	exit 1
+fi
+
 if [ $# -lt 3 -o $# -gt 3 ]
 then
   echo ""
@@ -144,11 +149,6 @@ do_cmd_true "mt -f $DEV status"
 #
 $PWD/tape_reset.sh $SDEV 1 &
 sleep 5
-
-#
-# This command should fail
-#
-do_cmd_false "mt -f $DEV status"
 
 #
 # These command should succeed

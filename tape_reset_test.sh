@@ -21,6 +21,11 @@ echo  "$1"
 $1 && echo "--- $1 TEST FAILED--- with status $?"
 }
 
+if [ "$EUID" -ne 0 ]
+        then echo "Please run as root"
+        exit 1
+fi
+
 if [ $# -lt 3 -o $# -gt 3 ]
 then
   echo ""

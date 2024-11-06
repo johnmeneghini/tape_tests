@@ -5,6 +5,11 @@
 # Must be run as root
 #
 
+if [ "$EUID" -ne 0 ]
+        then echo "Please run as root"
+        exit 1
+fi
+
 if [ $# -lt 3 -o $# -gt 3 ]
 then
   echo ""
