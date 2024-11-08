@@ -124,13 +124,21 @@ for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i"
 done
 
+h=$SDEV
+j=$SDEV
+((j=j+g))
+
 echo "Reset the targets"
 for i in $(seq $h $j); do
-    do_cmd_true "sg_reset --target /dev/nst$i"
+    do_cmd_true "sg_reset --target /dev/sg$i"
 done
 
 echo " Sleeping for 5 seconds"
 sleep 5
+
+h=$DEV
+j=$DEV
+((j=j+g))
 
 echo " Check the status"
 for i in $(seq $h $j); do
@@ -169,7 +177,6 @@ for i in $(seq $h $j); do
 done
 
 echo " Try writing to the tape"
-
 for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i "
     do_cmd_true "mt -f /dev/nst$i weof 1 "

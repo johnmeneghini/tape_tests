@@ -5,8 +5,10 @@ the Linux st tape driver. Set up and deployment of these tests require a Fedora
 or Centos-stream-9/10 linux hardware platform with a physical tape drive. At the
 time of this writing the following scripts are included:
 
+Tests that require no hardware:
+
 1. tape_reset_debug.sh - test using scsi_debug; no hardware required
-2. run_tests.sh - run all tests that require a physical tape drive
+2. tape_reset_debug_sg.sh - different version of the same test: no hardware required
 
 Tests that require a physical tape drive:
 
@@ -15,6 +17,7 @@ Tests that require a physical tape drive:
 5. tape_reset_eod.sh - reset tape while at eod and then try read and write
 6. tape_reset_load.sh - reset tape and then eject and load tape to clear
 7. tape_reset_status.sh - reset tape and then send try mt status
+8. run_tests.sh - run all tests that require a physical tape drive
 
 NOTE: The scripts used in this repository are all designed to be run from a
 root account. It is not advised to run these scripts on a production machine
