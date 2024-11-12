@@ -5,65 +5,19 @@
 # Must be run as root
 #
 
-if [ "$EUID" -ne 0 ]
-        then echo "Please run as root"
-        exit 1
-fi
+# this utility assumes the tape_reset_lib.sh libary is in the same directory
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. $DIR/tape_reset_lib.sh
 
-do_cmd_true() {
-echo  ""
-echo  "$1"
-$1 || echo "--- $1 TEST FAILED--- with status $?"
-}
+check_root
 
-do_cmd_false() {
-echo  ""
-echo  "$1"
-$1 && echo "--- $1 TEST FAILED--- with status $?"
-}
-
-if [ $# -lt 3 -o $# -gt 3 ]
-then
-  echo ""
-  echo " Usage: ${0##*/} /dev/nst<n> /dev/sg<n> <0|1|2>"
-  echo ""
-  echo "  Example:"
-  echo ""
-  echo "      ${0##*/} 0 1 0 = /dev/nst0 /dev/sg1 nodebug"
-  echo "      ${0##*/} 3 4 1 = /dev/nst3 /dev/sg4 debug"
-  echo "      ${0##*/} 3 4 2 = /dev/nst3 /dev/sg4 debug display dmesgs"
-  echo ""
-
-  which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi
-  ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
-  modprobe -r scsi_debug
-  modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=1 dev_size_mb=1000
-  lsscsi -ig
-  modprobe -r scsi_debug
-  exit
-fi
-
-which mt > /dev/null 2>&1 || dnf install -y mt-st
+[[ $# -lt 4 ]] || [[ $# -gt 4 ]] && check_debug_params
 
 DEBUG="$3"
+DMESG="$4"
 
-echo ""
-uname -r
-
-if [ "$DEBUG" -gt 0 ]; then
-	echo 1 > /sys/module/st/drivers/scsi\:st/debug_flag
-else
-	echo 0 > /sys/module/st/drivers/scsi\:st/debug_flag
-fi
-
-echo ""
-echo -n "/sys/module/st/drivers/scsi\:st/debug_flag : "
-cat /sys/module/st/drivers/scsi\:st/debug_flag
-
-if [ "$DEBUG" -gt 1 ]; then
-	dmesg -C
-	dmesg -Tw &
-fi
+set_debug
+set_dmesg
 
 N=1
 
@@ -75,15 +29,8 @@ echo ""
 DEV="$1"
 SDEV="$2"
 
-if [ ! -c /dev/nst$DEV ]; then
-  echo "  Invalid argument: ${DEV}" >&2
-  exit 1
-fi
-
-if [ ! -c /dev/sg$SDEV ]; then
-  echo "  Invalid argument: ${SDEV}" >&2
-  exit 1
-fi
+check_param2 "/dev/nst$DEV"
+check_param2 "/dev/sg$SDEV"
 
 g=1
 ((g=N-g))
@@ -194,4 +141,4 @@ echo ""
 echo "Done"
 echo ""
 
-ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
+clear_dmesg

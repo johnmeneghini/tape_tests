@@ -8,88 +8,28 @@
 #
 # This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive.
 #
+# this utility assumes the tape_reset_lib.sh libary is in the same directory
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. $DIR/tape_reset_lib.sh
 
-do_cmd_true() {
-echo  ""
-echo  "$1"
-$1 || echo "--- $1 TEST FAILED--- with status $?"
-}
+check_root
 
-do_cmd_false() {
-echo  ""
-echo  "$1"
-$1 && echo "--- $1 TEST FAILED--- with status $?"
-}
-
-if [ "$EUID" -ne 0 ]
-        then echo "Please run as root"
-        exit 1
-fi
-
-if [ $# -lt 3 -o $# -gt 3 ]
-then
-  echo ""
-  echo " usage: ${0##*/} <st_device> <sg_device> <0|1|2>"
-  echo ""
-  echo "  This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive"
-  echo "  and is designed to be used with real hardware."
-  echo ""
-  echo "  example:"
-  echo ""
-  echo "      ${0##*/} /dev/nst0 /dev/sg1 0 # debug off"
-  echo "      ${0##*/} /dev/nst1 /dev/sg2 1 # debug on"
-  echo "      ${0##*/} /dev/st0 /dev/sg1 2  # debug on, display dmesgs"
-  echo ""
-
-  which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi
-  lsscsi -ig
-  ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
-  exit
-fi
+[[ $# -lt 4 ]] || [[ $# -gt 4 ]] && check_params
 
 DEV="$1"
 SDEV="$2"
+
+check_param2 $DEV
+check_param2 $SDEV
+
 DEBUG="$3"
+DMESG="$4"
 
-if [ ! -c $DEV ]; then
-  echo "  Invalid argument: ${DEV}" >&2
-  lsscsi -ig
-  exit 1
-fi
-
-if [ ! -c $SDEV ]; then
-  echo "  Invalid argument: ${SDEV}" >&2
-  lsscsi -ig
-  exit 1
-fi
-
-if [ ! -f $PWD/tape_reset.sh ]; then
-  echo "  Error: $PWD/tape_reset.sh is missing"
-  exit 1
-fi
-
-which mt > /dev/null 2>&1 || dnf install -y mt-st
-
-if [ "$DEBUG" -gt 1 ]; then
-	echo "Start dmesg -Tw"
-	dmesg -C
-	dmesg -Tw &
-fi
+set_debug
+set_dmesg
 
 echo ""
 lsscsi -ig
-echo ""
-
-if [ "$DEBUG" -gt 0 ]; then
-	echo 1 > /sys/module/st/drivers/scsi\:st/debug_flag
-else
-	echo 0 > /sys/module/st/drivers/scsi\:st/debug_flag
-fi
-
-echo -n "/sys/module/st/drivers/scsi\:st/debug_flag : "
-cat /sys/module/st/drivers/scsi\:st/debug_flag
-echo ""
-uname -r
 echo ""
 
 set +e
@@ -109,7 +49,7 @@ do_cmd_true "mt -f $DEV status"
 #
 # Reset the device with tape at EOD
 #
-$PWD/tape_reset.sh $SDEV 1 &
+$DIR/tape_reset.sh $SDEV 1 &
 sleep 5
 
 #
@@ -132,8 +72,4 @@ echo ""
 echo "Done"
 echo ""
 
-if [ "$DEBUG" -gt 1 ]; then
-	echo "kill dmesg -Tw"
-	ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
-fi
-
+clear_dmesg

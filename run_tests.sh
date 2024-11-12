@@ -9,54 +9,22 @@
 # This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive.
 #
 
-if [ "$EUID" -ne 0 ]
-	then echo "Please run as root"
-	exit 1
-fi
+# this utility assumes the tape_reset_lib.sh libary is in the same directory
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. $DIR/tape_reset_lib.sh
 
-if [ $# -lt 3 -o $# -gt 3 ]
-then
-  echo ""
-  echo " usage: ${0##*/} <st_device> <sg_device> <0|1|2>"
-  echo ""
-  echo "  These tests were developed with a QUANTUM ULTRIUM 4 U53F tape drive"
-  echo "  and is designed to be used with real hardware."
-  echo ""
-  echo "  Runs all tests and concatenates out put in file tape_reset_tests.log"
-  echo ""
-  echo "  example:"
-  echo ""
-  echo "      ${0##*/} /dev/nst0 /dev/sg1 0 # debug off"
-  echo "      ${0##*/} /dev/nst1 /dev/sg2 1 # debug on"
-  echo "      ${0##*/} /dev/st0 /dev/sg1 2  # debug on, display dmesgs"
-  echo ""
+check_root
 
-  which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi
-  lsscsi -ig
-  ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
-  exit
-fi
+[[ $# -lt 4 ]] || [[ $# -gt 4 ]] && check_params
 
 DEV="$1"
 SDEV="$2"
+
+check_param2 $DEV
+check_param2 $SDEV
+
 DEBUG="$3"
-
-if [ ! -c $DEV ]; then
-  echo "  Invalid argument: ${DEV}" >&2
-  lsscsi -ig
-  exit 1
-fi
-
-if [ ! -c $SDEV ]; then
-  echo "  Invalid argument: ${SDEV}" >&2
-  lsscsi -ig
-  exit 1
-fi
-
-if [ ! -f $PWD/tape_reset.sh ]; then
-  echo "  Error: $PWD/tape_reset.sh is missing"
-  exit 1
-fi
+DMESG="$4"
 
 if [ -f $PWD/tape_reset_tests.log ]; then
 	echo "rm -f  tape_reset_tests.log"
@@ -68,8 +36,8 @@ echo ""
 
 for TEST in  tape_reset_test.sh tape_reset_status.sh tape_reset_load.sh tape_reset_eod.sh ;
 do
-#	echo "./$TEST $DEV $SDEV $DEBUG"
-	./$TEST $DEV $SDEV $DEBUG 2>&1 | tee -a tape_reset_tests.log
+#	echo "./$TEST $DEV $SDEV $DEBUG $DMESG"
+	./$TEST $DEV $SDEV $DEBUG $DMESG 2>&1 | tee -a tape_reset_tests.log
 done
 
 if [ -f $PWD/tape_reset_tests.log ]; then
