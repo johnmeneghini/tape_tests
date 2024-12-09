@@ -32,16 +32,16 @@ Example:
   dnf install -y git, lsscsi, mt-st, sg3_utils
   git clone https://github.com/johnmeneghini/tape_tests.git
   cd tape_tests
-  ./tape_reset_status.sh /dev/nst0 /dev/sg1 0 2>&1 | tee -a tape_reset_status.log
-  ./tape_reset_test.sh /dev/nst0 /dev/sg1 0 2>&1 | tee -a tape_reset_test.log
-  ./tape_reset_load.sh /dev/nst0 /dev/sg1 0 2>&1 | tee -a tape_reset_load.log
-  ./tape_reset_eod.sh /dev/nst0 /dev/sg1 0 2>&1 | tee -a tape_reset_eod.log
+  ./tape_reset_status.sh /dev/nst0 /dev/sg1 0 0 2>&1 | tee -a tape_reset_status.log
+  ./tape_reset_test.sh /dev/nst0 /dev/sg1 0 0 2>&1 | tee -a tape_reset_test.log
+  ./tape_reset_load.sh /dev/nst0 /dev/sg1 0 0 2>&1 | tee -a tape_reset_load.log
+  ./tape_reset_eod.sh /dev/nst0 /dev/sg1 0 0 2>&1 | tee -a tape_reset_eod.log
 ```
 
 NOTE: this sequence can be done for you by running:
 
 ```
-  ./run_tests.sh /dev/nst0 /dev/sg1 0
+  ./run_tests.sh /dev/nst0 /dev/sg1 0 0
 ```
 
 ## Help
@@ -49,18 +49,44 @@ NOTE: this sequence can be done for you by running:
 ```
 # ./tape_reset_test.sh
 
- usage: tape_reset_test.sh <st_device> <sg_device> <0|1|2>
+ usage: tape_reset_test.sh <st_device> <sg_device>  <debug> <dmesg>
 
-  This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive
+    <st_device> : name of st device               e.g.:(/dev/st1)
+    <sg_device> : name of corresponding sg device e.g.: (/dev/sg3)
+    <debug>  : 1 = debug on | 0 = debug off
+    <dmesg>  : 1 = dmesg on | 0 = dmesg off
+
+  These tests were developed with a QUANTUM ULTRIUM 4 U53F tape drive
   and is designed to be used with real hardware.
 
-  example:
+  Example:
 
-      tape_reset_test.sh /dev/nst0 /dev/sg1 0 # debug off
-      tape_reset_test.sh /dev/nst1 /dev/sg2 1 # debug on
-      tape_reset_test.sh /dev/st0 /dev/sg1 2  # debug on, display dmesgs
+      tape_reset_test.sh /dev/nst0 /dev/sg1 0 0
+      tape_reset_test.sh /dev/nst1 /dev/sg2 1 0
+      tape_reset_test.sh /dev/st0 /dev/sg1 1 1
 
 [0:0:0:0]    disk    ATA      Samsung SSD 840  4B0Q  /dev/sda   3500253855022021d  /dev/sg0
-[6:0:0:0]    tape    QUANTUM  ULTRIUM 4        U53F  /dev/st0   -  /dev/sg1
-[6:0:1:0]    enclosu LSI      virtualSES       02    -          -  /dev/sg2
+[7:0:0:0]    tape    QUANTUM  ULTRIUM 4        U53F  /dev/st0   -  /dev/sg1
+[7:0:1:0]    enclosu LSI      virtualSES       02    -          -  /dev/sg2
+[N:0:0:1]    disk    INTEL SSDPEDMW400G4__1                     /dev/nvme0n1  -
+
+# ./tape_reset_debug.sh
+
+ Usage: tape_reset_debug.sh <st_num> <sg_num> <debug> <dmesg>
+
+    <st_num> : /dev/st<st_num> e.g.(/dev/st1 = 1)
+    <sg_num> : /dev/sg<sg_num> e.g (/dev/sg3 = 3)
+    <debug>  : 1 = debug on | 0 = debug off
+    <dmesg>  : 1 = dmesg on | 0 = dmesg off
+
+  Example:
+
+      tape_reset_debug.sh 1 3 1 1    # /dev/st1 /dev/sg3 debug dmesg
+      tape_reset_debug.sh 1 3 0 0    # /dev/st1 /dev/sg3 nodebug nodmesg
+
+[0:0:0:0]    disk    ATA      Samsung SSD 840  4B0Q  /dev/sda   3500253855022021d  /dev/sg0
+[7:0:0:0]    tape    QUANTUM  ULTRIUM 4        U53F  /dev/st0   -  /dev/sg1
+[7:0:1:0]    enclosu LSI      virtualSES       02    -          -  /dev/sg2
+[8:0:0:0]    tape    Linux    scsi_debug       0191  /dev/st1   -  /dev/sg3
+[N:0:0:1]    disk    INTEL SSDPEDMW400G4__1                     /dev/nvme0n1  -
 ```
