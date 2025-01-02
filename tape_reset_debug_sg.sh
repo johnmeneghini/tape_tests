@@ -16,13 +16,12 @@ check_root
 DEBUG="$3"
 DMESG="$4"
 
-set_debug
 set_dmesg
 
 N=1
 
 modprobe -r scsi_debug
-modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=$N dev_size_mb=10000
+modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=$N dev_size_mb=10000 scsi_level=6
 lsscsi -ig
 echo ""
 
@@ -31,6 +30,8 @@ SDEV="$2"
 
 check_param2 "/dev/nst$DEV"
 check_param2 "/dev/sg$SDEV"
+
+set_debug
 
 g=1
 ((g=N-g))
@@ -50,6 +51,21 @@ sleep 20
 echo " Check the status"
 for i in $(seq $h $j); do
    do_cmd_true "mt -f /dev/nst$i status"
+done
+
+echo " Read options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+done
+
+echo " Set options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stsetoptions no-blklimits"
+done
+
+echo " Read options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stshowoptions"
 done
 
 echo " Load the tape"
@@ -92,6 +108,21 @@ for i in $(seq $h $j); do
     do_cmd_true " mt -f /dev/nst$i status"
 done
 
+echo " Read options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+done
+
+echo " Set options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stsetoptions no-blklimits"
+done
+
+echo " Read options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+done
+
 echo " Try writing to the tape"
 for i in $(seq $h $j); do
     do_cmd_false "dd if=/dev/random count=50 of=/dev/nst$i "
@@ -121,6 +152,21 @@ done
 echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true "mt -f /dev/nst$i status"
+done
+
+echo " Read options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+done
+
+echo " Set options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stsetoptions no-blklimits"
+done
+
+echo " Read options"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i stshowoptions"
 done
 
 echo " Try writing to the tape"
