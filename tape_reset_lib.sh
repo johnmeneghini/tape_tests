@@ -13,6 +13,18 @@ do_cmd_true() {
 	$1 || echo "--- $1 TEST FAILED--- with status $?"
 }
 
+test_reset_blocked_false() {
+	p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
+	echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
+	[[ "$p1" != "1" ]] || echo "--- position_lost_in_reset TEST FAILED--- with status $p1"
+}
+
+test_reset_blocked_true() {
+	p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
+	echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
+	[[ "$p1" != "1" ]] && echo "--- position_lost_in_reset TEST FAILED--- with status $p1"
+}
+
 do_cmd_false() {
 	echo  ""
 	echo  "$1"
