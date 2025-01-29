@@ -50,6 +50,7 @@ done
 echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true "mt -f /dev/nst$i status"
+    test_reset_blocked_false "nst$i"
 done
 
 echo " Sleeping for 20 seconds"
@@ -58,6 +59,7 @@ sleep 20
 echo " Check the status"
 for i in $(seq $h $j); do
    do_cmd_true "mt -f /dev/nst$i status"
+   test_reset_blocked_false "nst$i"
 done
 
 echo " Read options"
@@ -85,7 +87,7 @@ for i in $(seq $h $j); do
     do_cmd_true "mt -f /dev/nst$i status"
 done
 
-echo " Try writing to the tape"
+echo " Try reading the tape"
 for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i "
     do_cmd_true "mt -f /dev/nst$i weof 1 "
@@ -120,6 +122,7 @@ done
 echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true " mt -f /dev/nst$i status"
+    test_reset_blocked_true "nst$i"
 done
 
 echo " Read options"
@@ -129,7 +132,7 @@ done
 
 echo " Set options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stsetoptions no-blklimits"
+   do_cmd_false "mt -f /dev/nst$i stsetoptions no-blklimits"
 done
 
 echo " Read options"
@@ -144,6 +147,7 @@ for i in $(seq $h $j); do
     do_cmd_false "mt -f /dev/nst$i wset 1"
     do_cmd_false "dd if=/dev/nst$i count=50 of=/dev/null"
     do_cmd_false "dd if=/dev/random count=50 of=/dev/nst$i"
+    test_reset_blocked_true "nst$i"
 done
 
 echo " Check the status"
@@ -166,6 +170,7 @@ done
 echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true "mt -f /dev/nst$i status"
+    test_reset_blocked_false "nst$i"
 done
 
 echo " Read options"

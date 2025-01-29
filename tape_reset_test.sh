@@ -19,6 +19,8 @@ check_root
 
 DEV="$1"
 SDEV="$2"
+D=${DEV:4}
+echo "$D"
 
 check_param2 $DEV
 check_param2 $SDEV
