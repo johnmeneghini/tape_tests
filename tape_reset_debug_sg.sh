@@ -165,22 +165,10 @@ for i in $(seq $h $j); do
     do_cmd_true " mt -f /dev/nst$i status"
 done
 
-echo " unload the tape"
-for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i unload"
-done
-
 echo " Load the tape"
 for i in $(seq $h $j); do
     do_cmd_true "mt -f /dev/nst$i load"
 done
-
-# Everytime I rewind the tape the scsi_debug tape emulator loses it's mind.
-
-#echo " Rewind the tape"
-#for i in $(seq $h $j); do
-#   do_cmd_true "mt -f /dev/nst$i rewind"
-#done
 
 echo " Check the status"
 for i in $(seq $h $j); do
@@ -217,6 +205,16 @@ done
 echo " Try reading the tape"
 for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/nst$i count=50 of=/dev/null"
+done
+
+echo " Check the status"
+for i in $(seq $h $j); do
+    do_cmd_true "mt -f /dev/nst$i status"
+done
+
+echo " Rewind the tape"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i rewind"
 done
 
 echo " Check the status"
