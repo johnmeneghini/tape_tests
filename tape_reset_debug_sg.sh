@@ -87,13 +87,20 @@ for i in $(seq $h $j); do
     do_cmd_true "mt -f /dev/nst$i status"
 done
 
-echo " Try reading the tape"
+echo " Try writing the tape"
 for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i "
     do_cmd_true "mt -f /dev/nst$i weof 1 "
-    do_cmd_true "mt -f /dev/nst$i wset 1"
+done
+
+echo " Rewind the tape"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i rewind"
+done
+
+echo " Try reading the tape"
+for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/nst$i count=50 of=/dev/null"
-    do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i"
 done
 
 h=$SDEV
@@ -144,15 +151,23 @@ echo " Try writing to the tape"
 for i in $(seq $h $j); do
     do_cmd_false "dd if=/dev/random count=50 of=/dev/nst$i "
     do_cmd_false "mt -f /dev/nst$i weof 1 "
-    do_cmd_false "mt -f /dev/nst$i wset 1"
+    test_reset_blocked_true "nst$i"
+done
+
+echo " Try reading the tape"
+for i in $(seq $h $j); do
     do_cmd_false "dd if=/dev/nst$i count=50 of=/dev/null"
-    do_cmd_false "dd if=/dev/random count=50 of=/dev/nst$i"
     test_reset_blocked_true "nst$i"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true " mt -f /dev/nst$i status"
+done
+
+echo " unload the tape"
+for i in $(seq $h $j); do
+    do_cmd_true "mt -f /dev/nst$i unload"
 done
 
 echo " Load the tape"
@@ -192,9 +207,16 @@ echo " Try writing to the tape"
 for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i "
     do_cmd_true "mt -f /dev/nst$i weof 1 "
-    do_cmd_true "mt -f /dev/nst$i wset 1"
+done
+
+echo " Rewind the tape"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i rewind"
+done
+
+echo " Try reading the tape"
+for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/nst$i count=50 of=/dev/null"
-    do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i"
 done
 
 echo " Check the status"
