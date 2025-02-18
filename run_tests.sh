@@ -34,14 +34,14 @@ fi
 
 echo ""
 
-for TEST in  tape_reset_test.sh tape_reset_status.sh tape_reset_load.sh tape_reset_eod.sh ;
+for TEST in  $DIR/tape_reset_test.sh $DIR/tape_reset_status.sh $DIR/tape_reset_load.sh $DIR/tape_reset_eod.sh ;
 do
-#	echo "./$TEST $DEV $SDEV $DEBUG $DMESG"
-	./$TEST $DEV $SDEV $DEBUG $DMESG 2>&1 | tee -a tape_reset_tests.log
+#	echo "$TEST $DEV $SDEV $DEBUG $DMESG"
+	$TEST $DEV $SDEV $DEBUG $DMESG 2>&1 | tee -a tape_reset_tests.log
 done
 
 if [ -f $PWD/tape_reset_tests.log ]; then
-	grep ^-- $PWD/tape_reset_tests.log
+	grep -E "TEST.FAILED|Input/output.error" $PWD/tape_reset_tests.log
 fi
 
 echo ""

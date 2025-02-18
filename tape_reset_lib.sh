@@ -9,14 +9,14 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 do_cmd_true() {
 	echo  ""
-	echo  "$1"
-	$1 || echo "--- $1 TEST FAILED--- with status $?"
+	echo  "--- $1"
+	$1 || echo "--- $1 TEST FAILED --- with status $?"
 }
 
 do_cmd_false() {
 	echo  ""
-	echo  "$1"
-	$1 && echo "--- $1 TEST FAILED--- with status $?"
+	echo  "--- $1"
+	$1 && echo "--- $1 TEST FAILED --- with status $?"
 }
 
 check_root() {
@@ -104,6 +104,7 @@ set_debug() {
 
 set_dmesg() {
 	echo ""
+	echo -n "--- "
 	uname -r
 	if [ "$DMESG" -gt 0 ]; then
 		dmesg -C
