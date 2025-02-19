@@ -40,6 +40,7 @@ set +e
 #
 
 do_cmd_true "sg_map -st -x -i"
+do_cmd_true "stinit -f $DIR/stinit.conf -v $DEV"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"
@@ -79,6 +80,8 @@ do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 #
 # These command should succeed
 #
+do_cmd_true "sg_map -st -x -i"
+do_cmd_true "stinit -f $DIR/stinit.conf -v $DEV"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"
@@ -101,6 +104,8 @@ do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 #
 # Seek should succeed after reset
 #
+do_cmd_true "sg_map -st -x -i"
+do_cmd_true "stinit -f $DIR/stinit.conf -v $DEV"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV status"
@@ -188,6 +193,8 @@ do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 #
 # These command should succeed
 #
+do_cmd_true "sg_map -st -x -i"
+do_cmd_true "stinit -f $DIR/stinit.conf -v $DEV"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"

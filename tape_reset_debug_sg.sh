@@ -42,6 +42,11 @@ j=$DEV
 
 do_cmd_true "sg_map -st -x -i"
 
+echo " Send the stinit cmmmand"
+for i in $(seq $h $j); do
+    do_cmd_true "stinit -f $DIR/stinit.conf -v /dev/nst$i"
+done
+
 echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true "mt -f /dev/nst$i status"
@@ -106,6 +111,11 @@ j=$DEV
 ((j=j+g))
 
 do_cmd_true "sg_map -st -x -i"
+
+echo " Send the stinit cmmmand"
+for i in $(seq $h $j); do
+    do_cmd_true "stinit -f $DIR/stinit.conf -v /dev/nst$i"
+done
 
 echo " Check the status"
 for i in $(seq $h $j); do
