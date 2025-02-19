@@ -40,6 +40,8 @@ h=$DEV
 j=$DEV
 ((j=j+g))
 
+do_cmd_true "sg_map -st -x -i"
+
 echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true "mt -f /dev/nst$i status"
@@ -102,6 +104,8 @@ sleep 5
 h=$DEV
 j=$DEV
 ((j=j+g))
+
+do_cmd_true "sg_map -st -x -i"
 
 echo " Check the status"
 for i in $(seq $h $j); do

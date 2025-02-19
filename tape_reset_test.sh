@@ -39,6 +39,7 @@ set +e
 # Write two files on the tape and make sure we can read them
 #
 
+do_cmd_true "sg_map -st -x -i"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"
@@ -63,6 +64,8 @@ do_cmd_true "mt -f $DEV status"
 $DIR/tape_reset.sh $SDEV 5 &
 sleep 7
 
+do_cmd_true "sg_map -st -x -i"
+
 #
 # These commands should fail
 #
@@ -83,6 +86,7 @@ do_cmd_true "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV stshowoptions"
+do_cmd_true "sg_map -st -x -i"
 
 #
 # Reset the device with IO inprogress
