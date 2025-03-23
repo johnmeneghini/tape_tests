@@ -45,18 +45,19 @@ check_root() {
 
 check_debug_params() {
 	echo ""
-	echo " Usage: ${0##*/} <st_num> <sg_num> <debug> <dmesg>"
+	echo " Usage: ${0##*/} <st_num> <sg_num> <debug> <dmesg> <scsi_level>"
 	echo ""
-	echo "    <st_num> : /dev/st<st_num> e.g.(/dev/st1 = 1)"
-	echo "    <sg_num> : /dev/sg<sg_num> e.g (/dev/sg3 = 3)"
-	echo "    <debug>  : 1 = debug on | 0 = debug off"
-	echo "    <dmesg>  : 1 = dmesg on | 0 = dmesg off"
-	echo ""
+	echo "     <st_num> : /dev/st<st_num> e.g.(/dev/st1 = 1)"
+	echo "     <sg_num> : /dev/sg<sg_num> e.g (/dev/sg3 = 3)"
+	echo "      <debug> : 1 = debug on | 0 = debug off"
+	echo "      <dmesg> : 1 = dmesg on | 0 = dmesg off"
+	echo " <scsi_level> : 1 to 8 - see: /usr/src/kernels/$(uname -r)/include/scsi/scsi.h"
+	echo "                      "
 	echo "  Example:"
 	echo ""
-	echo "      ${0##*/} 3 4 1 0    # /dev/st3 /dev/sg4 debug nodmesg"
-	echo "      ${0##*/} 1 3 1 1    # /dev/st1 /dev/sg3 debug dmesg"
-	echo "      ${0##*/} 0 1 0 0    # /dev/st0 /dev/sg1 nodebug nodmesg"
+	echo "      ${0##*/} 3 4 1 0 6   # /dev/st3 /dev/sg4 debug nodmesg SCSI_SPC_3"
+	echo "      ${0##*/} 1 3 1 1 2   # /dev/st1 /dev/sg3 debug dmesg SCSI_2"
+	echo "      ${0##*/} 0 1 0 0 8   # /dev/st0 /dev/sg1 nodebug nodmesg SCSI_SPC_5"
 	echo ""
 
 	which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi
@@ -70,9 +71,9 @@ check_debug_params() {
 
 check_params() {
 	echo ""
-	echo " usage: ${0##*/} <st_device> <sg_device>  <debug> <dmesg>"
+	echo " usage: ${0##*/} <st_device> <sg_device> <debug> <dmesg>"
 	echo ""
-	echo "    <st_device> : name of st device               e.g.:(/dev/st1)"
+	echo "    <st_device> : name of st device e.g.:(/dev/st1)"
 	echo "    <sg_device> : name of corresponding sg device e.g.: (/dev/sg3)"
 	echo "    <debug>  : 1 = debug on | 0 = debug off"
 	echo "    <dmesg>  : 1 = dmesg on | 0 = dmesg off"

@@ -11,17 +11,20 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 check_root
 
-[[ $# -lt 4 ]] || [[ $# -gt 4 ]] && check_debug_params
+[[ $# -lt 5 ]] || [[ $# -gt 5 ]] && check_debug_params
 
 DEBUG="$3"
 DMESG="$4"
+SL="$5"
 
 set_dmesg
 
-N=1
+N=4
 
 modprobe -r scsi_debug
-modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=$N dev_size_mb=10000 scsi_level=6
+echo ""
+echo "--- modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=$N dev_size_mb=10000 scsi_level=$SL"
+modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=$N dev_size_mb=10000 scsi_level=$SL
 lsscsi -ig
 echo ""
 
@@ -205,6 +208,16 @@ done
 echo " Try reading the tape"
 for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/nst$i count=50 of=/dev/null"
+done
+
+echo " Check the status"
+for i in $(seq $h $j); do
+    do_cmd_true "mt -f /dev/nst$i status"
+done
+
+echo " Erase the tape"
+for i in $(seq $h $j); do
+   do_cmd_true "mt -f /dev/nst$i erase"
 done
 
 echo " Check the status"
