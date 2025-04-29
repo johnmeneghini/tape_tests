@@ -19,6 +19,8 @@ check_root
 
 DEV="$1"
 SDEV="$2"
+D=${DEV:4}
+echo "$D"
 
 check_param2 $DEV
 check_param2 $SDEV
@@ -38,9 +40,13 @@ set +e
 #
 # Write two files on the tape and make sure we can read them
 #
+
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV stshowoptions"
+do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
+do_cmd_true "mt -f $DEV stshowoptions"
 do_cmd_true "dd if=/dev/random count=1001024 of=$DEV"
 do_cmd_true "dd if=/dev/random count=1001024 of=$DEV"
 do_cmd_true "mt -f $DEV rewind "
@@ -54,13 +60,15 @@ do_cmd_true "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV status"
 
 #
-# Reset the device with IO inprogress
+# Reset the device
 #
 $DIR/tape_reset.sh $SDEV 5 &
+sleep 7
 
 #
 # These commands should fail
 #
+do_cmd_false "mt -f $DEV stsetoptions no-blklimits"
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV "
 do_cmd_false "mt -f $DEV weof 1 "
 do_cmd_false "mt -f $DEV wset 1"
@@ -74,7 +82,9 @@ do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
 do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV stshowoptions"
 
 #
 # Reset the device with IO inprogress
