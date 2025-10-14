@@ -45,19 +45,20 @@ check_root() {
 
 check_debug_params() {
 	echo ""
-	echo " Usage: ${0##*/} <st_num> <sg_num> <debug> <dmesg> <scsi_level>"
+	echo " Usage: ${0##*/} <st_num> <sg_num> <debug> <dmesg> <scsi_level> [n]"
 	echo ""
 	echo "     <st_device> : e.g.(/dev/nst1)"
 	echo "     <sg_device> : e.g (/dev/sg3)"
 	echo "     <debug>     : 1 = debug on | 0 = debug off"
 	echo "     <dmesg>     : 1 = dmesg on | 0 = dmesg off"
 	echo " <scsi_level>    : 1 to 8 - see: /usr/src/kernels/$(uname -r)/include/scsi/scsi.h"
+	echo "    [number]     : optional: number of tape devices (defaults to 4)"
 	echo "                      "
 	echo "  Example:"
 	echo ""
+	echo "      ${0##*/} /dev/nst1 /dev/sg3 1 1 2 1 # /dev/nst1 /dev/sg3 debug dmesg SCSI_2 [1 tape device]"
 	echo "      ${0##*/} /dev/nst3 /dev/sg4 1 0 6   # /dev/nst3 /dev/sg4 debug nodmesg SCSI_SPC_3"
-	echo "      ${0##*/} /dev/nst1 /dev/sg3 1 1 2   # /dev/nst1 /dev/sg3 debug dmesg SCSI_2"
-	echo "      ${0##*/} /dev/st0 /dev/sg1 0 0 8   # /dev/st0 /dev/sg1 nodebug nodmesg SCSI_SPC_5"
+	echo "      ${0##*/} /dev/st0 /dev/sg1 0 0 8    # /dev/st0 /dev/sg1 nodebug nodmesg SCSI_SPC_5"
 	echo ""
 
 	which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi

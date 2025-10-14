@@ -11,15 +11,22 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 check_root
 
-[[ $# -lt 5 ]] || [[ $# -gt 5 ]] && check_debug_params
+[[ $# -lt 5 ]] || [[ $# -gt 6 ]] && check_debug_params
 
 DEBUG="$3"
 DMESG="$4"
 SL="$5"
+N="$6"
+
+if [ -z "$N" ]; then
+    N=4
+elif [ "$N" -eq 0 ]; then
+    N=4
+else
+    echo "N = $N"
+fi
 
 set_dmesg
-
-N=4
 
 modprobe -r scsi_debug
 echo ""
