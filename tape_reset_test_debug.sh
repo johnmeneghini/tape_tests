@@ -28,13 +28,19 @@ modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=$N dev_size_mb=10000
 lsscsi -ig
 echo ""
 
-DEV="$1"
-SDEV="$2"
+dev="$1"
+sdev="$2"
 
-check_param2 "/dev/nst$DEV"
-check_param2 "/dev/sg$SDEV"
+check_param2 "$dev"
+check_param2 "$sdev"
 
 set_debug
+
+DEV=$(echo "$dev" | awk -F"st" '{print $2}')
+SDEV=$(echo "$sdev" | awk -F"sg" '{print $2}')
+
+TAPE=$(echo "$dev" | awk -F"st" '{print $1}')
+TAPE="${TAPE}st"
 
 g=1
 ((g=N-g))
@@ -47,12 +53,12 @@ do_cmd_true "sg_map -st -x -i"
 
 echo " Send the stinit cmmmand"
 for i in $(seq $h $j); do
-    do_cmd_true "stinit -f $DIR/stinit.conf -v /dev/nst$i"
+    do_cmd_true "stinit -f $DIR/stinit.conf -v $TAPE$i"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i status"
+    do_cmd_true "mt -f $TAPE$i status"
     test_reset_blocked_false "nst$i"
 done
 
@@ -61,49 +67,49 @@ sleep 20
 
 echo " Check the status"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i status"
+   do_cmd_true "mt -f $TAPE$i status"
    test_reset_blocked_false "nst$i"
 done
 
 echo " Read options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+   do_cmd_true "mt -f $TAPE$i stshowoptions"
 done
 
 echo " Set options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stsetoptions no-blklimits"
+   do_cmd_true "mt -f $TAPE$i stsetoptions no-blklimits"
 done
 
 echo " Read options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+   do_cmd_true "mt -f $TAPE$i stshowoptions"
 done
 
 echo " Load the tape"
 for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i load"
+    do_cmd_true "mt -f $TAPE$i load"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i status"
+    do_cmd_true "mt -f $TAPE$i status"
 done
 
 echo " Try writing the tape"
 for i in $(seq $h $j); do
-    do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i "
-    do_cmd_true "mt -f /dev/nst$i weof 1 "
+    do_cmd_true "dd if=/dev/random count=50 of=$TAPE$i "
+    do_cmd_true "mt -f $TAPE$i weof 1 "
 done
 
 echo " Rewind the tape"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i rewind"
+   do_cmd_true "mt -f $TAPE$i rewind"
 done
 
 echo " Try reading the tape"
 for i in $(seq $h $j); do
-    do_cmd_true "dd if=/dev/nst$i count=50 of=/dev/null"
+    do_cmd_true "dd if=$TAPE$i count=50 of=/dev/null"
 done
 
 h=$SDEV
@@ -126,113 +132,113 @@ do_cmd_true "sg_map -st -x -i"
 
 echo " Send the stinit cmmmand"
 for i in $(seq $h $j); do
-    do_cmd_true "stinit -f $DIR/stinit.conf -v /dev/nst$i"
+    do_cmd_true "stinit -f $DIR/stinit.conf -v $TAPE$i"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
-    do_cmd_true " mt -f /dev/nst$i status"
+    do_cmd_true " mt -f $TAPE$i status"
     test_reset_blocked_true "nst$i"
 done
 
 echo " Read options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+   do_cmd_true "mt -f $TAPE$i stshowoptions"
 done
 
 echo " Set options"
 for i in $(seq $h $j); do
-   do_cmd_false "mt -f /dev/nst$i stsetoptions no-blklimits"
+   do_cmd_false "mt -f $TAPE$i stsetoptions no-blklimits"
 done
 
 echo " Read options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+   do_cmd_true "mt -f $TAPE$i stshowoptions"
 done
 
 echo " Try writing to the tape"
 for i in $(seq $h $j); do
-    do_cmd_false "dd if=/dev/random count=50 of=/dev/nst$i "
-    do_cmd_false "mt -f /dev/nst$i weof 1 "
+    do_cmd_false "dd if=/dev/random count=50 of=$TAPE$i "
+    do_cmd_false "mt -f $TAPE$i weof 1 "
     test_reset_blocked_true "nst$i"
 done
 
 echo " Try reading the tape"
 for i in $(seq $h $j); do
-    do_cmd_false "dd if=/dev/nst$i count=50 of=/dev/null"
+    do_cmd_false "dd if=$TAPE$i count=50 of=/dev/null"
     test_reset_blocked_true "nst$i"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
-    do_cmd_true " mt -f /dev/nst$i status"
+    do_cmd_true " mt -f $TAPE$i status"
 done
 
 echo " Load the tape"
 for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i load"
+    do_cmd_true "mt -f $TAPE$i load"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i status"
+    do_cmd_true "mt -f $TAPE$i status"
     test_reset_blocked_false "nst$i"
 done
 
 echo " Read options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+   do_cmd_true "mt -f $TAPE$i stshowoptions"
 done
 
 echo " Set options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stsetoptions no-blklimits"
+   do_cmd_true "mt -f $TAPE$i stsetoptions no-blklimits"
 done
 
 echo " Read options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i stshowoptions"
+   do_cmd_true "mt -f $TAPE$i stshowoptions"
 done
 
 echo " Try writing to the tape"
 for i in $(seq $h $j); do
-    do_cmd_true "dd if=/dev/random count=50 of=/dev/nst$i "
-    do_cmd_true "mt -f /dev/nst$i weof 1 "
+    do_cmd_true "dd if=/dev/random count=50 of=$TAPE$i "
+    do_cmd_true "mt -f $TAPE$i weof 1 "
 done
 
 echo " Rewind the tape"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i rewind"
+   do_cmd_true "mt -f $TAPE$i rewind"
 done
 
 echo " Try reading the tape"
 for i in $(seq $h $j); do
-    do_cmd_true "dd if=/dev/nst$i count=50 of=/dev/null"
+    do_cmd_true "dd if=$TAPE$i count=50 of=/dev/null"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i status"
+    do_cmd_true "mt -f $TAPE$i status"
 done
 
 echo " Erase the tape"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i erase"
+   do_cmd_true "mt -f $TAPE$i erase"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i status"
+    do_cmd_true "mt -f $TAPE$i status"
 done
 
 echo " Rewind the tape"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f /dev/nst$i rewind"
+   do_cmd_true "mt -f $TAPE$i rewind"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
-    do_cmd_true "mt -f /dev/nst$i status"
+    do_cmd_true "mt -f $TAPE$i status"
 done
 
 echo ""
