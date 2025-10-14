@@ -28,7 +28,11 @@ Example:
   git clone https://github.com/johnmeneghini/tape_tests.git
   cd tape_tests
   ./tape_reset_test.sh /dev/nst0 /dev/sg1 0 0 2>&1 | tee -a tape_reset_test.log
-  ./tape_reset_test_debug.sh /dev/nst1 /dev/sg3 0 0 6 2>&1 | tee -a tape_reset_test_debuglog
+```
+
+NOTE: this sequence can be done for you by running:
+```
+ ./run_tests.sh /dev/nst0 /dev/sg1 0 0
 ```
 
 ## Help
@@ -58,3 +62,35 @@ Example:
 [N:0:0:1]    disk    INTEL SSDPEDMW400G4__1                     /dev/nvme0n1  -
 ```
 
+Tape debug tests require no tape drive.
+
+```
+./tape_reset_test_debug.sh
+
+ Usage: tape_reset_test_debug.sh <st_num> <sg_num> <debug> <dmesg> <scsi_level>
+
+     <st_device> : e.g.(/dev/nst1)
+     <sg_device> : e.g (/dev/sg3)
+     <debug>     : 1 = debug on | 0 = debug off
+     <dmesg>     : 1 = dmesg on | 0 = dmesg off
+ <scsi_level>    : 1 to 8 - see: /usr/src/kernels/6.18.0-rc1_mstr/include/scsi/scsi.h
+
+  Example:
+
+      tape_reset_test_debug.sh /dev/nst3 /dev/sg4 1 0 6   # /dev/nst3 /dev/sg4 debug nodmesg SCSI_SPC_3
+      tape_reset_test_debug.sh /dev/nst1 /dev/sg3 1 1 2   # /dev/nst1 /dev/sg3 debug dmesg SCSI_2
+      tape_reset_test_debug.sh /dev/st0 /dev/sg1 0 0 8   # /dev/st0 /dev/sg1 nodebug nodmesg SCSI_SPC_5
+
+[0:0:0:0]    disk    ATA      Samsung SSD 840  4B0Q  /dev/sda   3500253855022021d  /dev/sg0
+[6:0:0:0]    tape    QUANTUM  ULTRIUM 4        U53F  /dev/st0   -  /dev/sg1
+[6:0:1:0]    enclosu LSI      virtualSES       02    -          -  /dev/sg2
+[8:0:0:0]    tape    Linux    scsi_debug       0191  /dev/st1   -  /dev/sg3
+[N:0:0:1]    disk    INTEL SSDPEDMW400G4__1                     /dev/nvme0n1  -
+```
+
+Example run:
+
+```
+sudo ./tape_reset_test_debug.sh /dev/nst1 /dev/sg3 0 0 6 2>&1 | tee -a tape_reset_test_debug.log
+
+```
