@@ -214,14 +214,16 @@ sleep 3
 # Status should succeed
 #
 do_cmd_true "mt -f $DEV status"
-test_reset_blocked_false "$TDEV"
+test_reset_blocked_true "$TDEV"
 
 #
 # These command fail when there's no tape.
 #
 do_cmd_false "mt -f $DEV weof 1"
 do_cmd_false "mt -f $DEV wset 1"
+test_reset_blocked_true "$TDEV"
 do_cmd_false "mt -f $DEV eod"
+test_reset_blocked_false "$TDEV"
 do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_false "$TDEV"
@@ -248,11 +250,8 @@ sleep 3
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "mt -f $DEV weof 1"
-test_reset_blocked_true "$TDEV"
 do_cmd_false "mt -f $DEV wset 1"
-test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
-test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 
@@ -294,9 +293,10 @@ do_cmd_true "mt -f $DEV rewind"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 
+clear_dmesg
+
 echo ""
 echo "Done"
 echo ""
 
-clear_dmesg
-
+exit
