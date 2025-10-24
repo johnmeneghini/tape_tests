@@ -10,7 +10,9 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 do_cmd_true() {
 	echo  ""
 	echo  "--- $1"
-	$1 || echo "--- $1 TEST FAILED --- with status $?"
+	$1 2> .cmd_err || echo "--- $1 TEST FAILED --- with status $?"
+	grep -E "failed|error" .cmd_err || echo -n "--- $1 TEST FAILED --- with "; cat .cmd_err
+	rm -f .cmd_err
 }
 
 test_reset_blocked_false() {
@@ -28,7 +30,10 @@ test_reset_blocked_true() {
 do_cmd_false() {
 	echo  ""
 	echo  "--- $1"
-	$1 && echo "--- $1 TEST FAILED --- with status $?"
+	$1 2> .cmd_err && echo "--- $1 TEST FAILED --- with status $?"
+	grep -v -E "failed|error" .cmd_err || echo -n "--- $1 TEST FAILED --- with "; cat .cmd_err
+	rm -f .cmd_err
+
 }
 
 check_root() {

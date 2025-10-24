@@ -91,6 +91,7 @@ $DIR/tape_reset.sh $SDEV 5 &
 sleep 7
 
 do_cmd_true "sg_map -st -x -i"
+test_reset_blocked_true "$TDEV"
 
 #
 # These commands should fail

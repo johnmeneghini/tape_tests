@@ -41,7 +41,7 @@ do
 done
 
 if [ -f $PWD/tape_reset_tests.log ]; then
-	grep -E "TEST.FAILED|Input/output.error" $PWD/tape_reset_tests.log
+	grep -E "TEST.FAILED|failed" $PWD/tape_reset_tests.log
 fi
 
 echo ""
