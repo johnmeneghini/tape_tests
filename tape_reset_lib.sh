@@ -11,7 +11,7 @@ do_cmd_true() {
 	echo  ""
 	echo  "--- $1"
 	$1 2> .cmd_err || echo "--- $1 TEST FAILED --- with status $?"
-	grep -E "failed|error" .cmd_err || echo -n "--- $1 TEST FAILED --- with "; cat .cmd_err
+	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && (echo -n "--- $1 TEST FAILED : "; cat .cmd_err)
 	rm -f .cmd_err
 }
 
@@ -31,7 +31,7 @@ do_cmd_false() {
 	echo  ""
 	echo  "--- $1"
 	$1 2> .cmd_err && echo "--- $1 TEST FAILED --- with status $?"
-	grep -v -E "failed|error" .cmd_err || echo -n "--- $1 TEST FAILED --- with "; cat .cmd_err
+	grep -E "failed|error" .cmd_err > /dev/null 2>&1 || (echo "--- $1 TEST FAILED : "; cat .cmd_err)
 	rm -f .cmd_err
 
 }
