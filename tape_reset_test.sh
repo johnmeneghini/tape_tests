@@ -15,7 +15,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 check_root
 
-[[ $# -lt 4 ]] || [[ $# -gt 4 ]] && check_params
+[[ $# -lt 5 ]] || [[ $# -gt 5 ]] && check_params
 
 DEV="$1"
 SDEV="$2"
@@ -27,6 +27,7 @@ check_param2 $SDEV
 
 DEBUG="$3"
 DMESG="$4"
+STOERR="$5"
 
 set_debug
 set_dmesg
@@ -42,7 +43,6 @@ set +e
 #
 # Write two files on the tape and make sure we can read them
 #
-
 
 test_reset_blocked_false "$TDEV"
 do_cmd_true "sg_map -st -x -i"
@@ -88,7 +88,7 @@ test_reset_blocked_false "$TDEV"
 # Reset the device
 #
 $DIR/tape_reset.sh $SDEV 5 &
-sleep 7
+sleep 3
 
 do_cmd_true "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
@@ -136,14 +136,14 @@ do_cmd_true "sg_map -st -x -i"
 test_reset_blocked_false "$TDEV"
 
 #
-# Reset the device with IO inprogress
+# Reset the device
 #
 $DIR/tape_reset.sh $SDEV 5 &
 
 #
 # This command should fail
 #
-test_reset_blocked_true "$TDEV"
+test_reset_blocked_false "$TDEV"
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 
@@ -157,9 +157,9 @@ test_reset_blocked_true "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_true "$TDEV"
 do_cmd_true "mt -f $DEV eod"
-test_reset_blocked_true "$TDEV"
+test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
-test_reset_blocked_true "$TDEV"
+test_reset_blocked_false "$TDEV"
 
 #
 # Reset the device with IO inprogress
@@ -187,7 +187,7 @@ do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
 
 #
-# Reset the device with IO inprogress
+# Reset the devices
 #
 $DIR/tape_reset.sh $SDEV 5 &
 

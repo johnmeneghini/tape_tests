@@ -7,33 +7,37 @@
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+stop_on_err() {
+	[ $STOERR -eq 1 ] || exit 1
+}
+
 do_cmd_true() {
 	echo  ""
 	echo  "--- $1"
-	$1 2> .cmd_err || echo "--- $1 TEST FAILED --- with status $?"
-	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && (echo -n "--- $1 TEST FAILED : "; cat .cmd_err)
+	$1 2> .cmd_err || (echo "--- $1 TEST FAILED --- with status $?"; stop_on_err)
+	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && (echo -n "--- $1 TEST FAILED : "; cat .cmd_err; stop_on_err)
 	rm -f .cmd_err
 }
 
 test_reset_blocked_false() {
 	p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
 	echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
-	[[ "$p1" != "1" ]] || echo "--- position_lost_in_reset TEST FAILED--- with status $p1"
+	[[ "$p1" != "1" ]] || (echo "--- position_lost_in_reset TEST FAILED--- with status $p1"; stop_on_err)
 }
 
 test_reset_blocked_true() {
 	p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
 	echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
-	[[ "$p1" != "1" ]] && echo "--- position_lost_in_reset TEST FAILED--- with status $p1"
+	[[ "$p1" != "1" ]] && (echo "--- position_lost_in_reset TEST FAILED--- with status $p1"; stop_on_err)
 }
 
 do_cmd_false() {
 	echo  ""
 	echo  "--- $1"
-	$1 2> .cmd_err && echo "--- $1 TEST FAILED --- with status $?"
-	grep -E "failed|error" .cmd_err > /dev/null 2>&1 || (echo "--- $1 TEST FAILED : "; cat .cmd_err)
+	$1 2> .cmd_err && (echo "--- $1 TEST FAILED --- with status $?"; stop_on_err)
+	cat .cmd_err
+	[ -s .cmd_err ] || (echo "--- $1 TEST FAILED : "; cat .cmd_err; stop_on_err)
 	rm -f .cmd_err
-
 }
 
 check_root() {
@@ -77,21 +81,22 @@ check_debug_params() {
 
 check_params() {
 	echo ""
-	echo " usage: ${0##*/} <st_device> <sg_device> <debug> <dmesg>"
+	echo " usage: ${0##*/} <st_device> <sg_device> <debug> <dmesg> <stop_on_err>"
 	echo ""
 	echo "    <st_device> : name of st device e.g.:(/dev/st1)"
 	echo "    <sg_device> : name of corresponding sg device e.g.: (/dev/sg3)"
 	echo "    <debug>  : 1 = debug on | 0 = debug off"
 	echo "    <dmesg>  : 1 = dmesg on | 0 = dmesg off"
+	echo "    <stop>   : 1 = stop on error | 0 = continue on error"
 	echo ""
 	echo "  These tests were developed with a QUANTUM ULTRIUM 4 U53F tape drive"
 	echo "  and is designed to be used with real hardware."
 	echo ""
 	echo "  Example:"
 	echo ""
-	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 0"
-	echo "      ${0##*/} /dev/nst1 /dev/sg2 1 0"
-	echo "      ${0##*/} /dev/st0 /dev/sg1 1 1"
+	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 0 1"
+	echo "      ${0##*/} /dev/nst1 /dev/sg2 1 0 0"
+	echo "      ${0##*/} /dev/st0 /dev/sg1 1 1 1"
 	echo ""
 
 	which mt > /dev/null 2>&1 || dnf install -y mt-st
