@@ -7,36 +7,54 @@
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+stop_on_pos_err() {
+	echo "--- position_lost_in_reset TEST FAILED--- with status $1"
+	if [[ "$STOERR" -eq 1 ]]; then
+		exit 1
+	fi
+}
+
+stop_on_cmd_err() {
+	echo "--- $1 TEST FAILED : "
+	cat .cmd_err
+	if [[ "$STOERR" -eq 1 ]]; then
+		exit 1
+	fi
+}
+
 stop_on_err() {
-	[ $STOERR -eq 1 ] || exit 1
+	echo "--- $1 TEST FAILED --- with status $2"
+	if [[ "$STOERR" -eq 1 ]]; then
+		exit 1
+	fi
 }
 
 do_cmd_true() {
 	echo  ""
 	echo  "--- $1"
-	$1 2> .cmd_err || (echo "--- $1 TEST FAILED --- with status $?"; stop_on_err)
-	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && (echo -n "--- $1 TEST FAILED : "; cat .cmd_err; stop_on_err)
+	$1 2> .cmd_err || stop_on_err $1 $?
+	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && stop_on_cmd_err $1
 	rm -f .cmd_err
 }
 
 test_reset_blocked_false() {
 	p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
 	echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
-	[[ "$p1" != "1" ]] || (echo "--- position_lost_in_reset TEST FAILED--- with status $p1"; stop_on_err)
+	[[ "$p1" != "1" ]] || stop_on_pos_err $p1
 }
 
 test_reset_blocked_true() {
 	p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
 	echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
-	[[ "$p1" != "1" ]] && (echo "--- position_lost_in_reset TEST FAILED--- with status $p1"; stop_on_err)
+	[[ "$p1" != "1" ]] && stop_on_pos_err $p1
 }
 
 do_cmd_false() {
 	echo  ""
 	echo  "--- $1"
-	$1 2> .cmd_err && (echo "--- $1 TEST FAILED --- with status $?"; stop_on_err)
+	$1 2> .cmd_err && stop_on_err $1 $?
 	cat .cmd_err
-	[ -s .cmd_err ] || (echo "--- $1 TEST FAILED : "; cat .cmd_err; stop_on_err)
+	[ -s .cmd_err ] || stop_on_cmd_err $1
 	rm -f .cmd_err
 }
 
