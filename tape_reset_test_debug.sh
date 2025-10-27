@@ -11,12 +11,13 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 check_root
 
-[[ $# -lt 5 ]] || [[ $# -gt 6 ]] && check_debug_params
+[[ $# -lt 6 ]] || [[ $# -gt 7 ]] && check_debug_params
 
 DEBUG="$3"
 DMESG="$4"
-SL="$5"
-N="$6"
+STOERR="$5"
+SL="$6"
+N="$7"
 
 if [ -z "$N" ]; then
     N=4
