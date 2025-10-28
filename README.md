@@ -34,10 +34,6 @@ Example:
   sudo ./tape_reset_test_debug.sh /dev/nst1 /dev/sg3 0 0 0 6 1 2>&1 | tee -a tape_reset_test_debug.log
 ```
 
-NOTE: this can be done for you by running:
-```
-```
-
 ## Help
 
 The `run_tests.sh` script determines whether to run `tape_reset_test.sh` or
