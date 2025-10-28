@@ -142,7 +142,7 @@ check_dev_nodebug_param() {
 
 	MODEL=$(cat /sys/class/scsi_tape/$NDEV/device/model)
 
-	if [[ "$MODEL" == "scsi_debug" ]]; then
+	if [[ "$MODEL" == "scsi_debug"* ]]; then
 		echo "  Invalid argument: $1 is a scsi_debug device ($MODEL)" >&2
 		exit 1
 	fi
@@ -153,13 +153,14 @@ check_dev_debug_param() {
 
 	MODEL=$(cat /sys/class/scsi_tape/$NDEV/device/model)
 
-	if [[ "$MODEL" != "scsi_debug" ]]; then
+	if [[ "$MODEL" != "scsi_debug"* ]]; then
 		echo "  Invalid Argument: $1 is not a scsi_debug device ($MODEL)" >&2
 		exit 1
 	fi
 }
 
 check_sdev_params() {
+	NDEV=$(echo "$1" | awk -F"/dev/" '{print $2}')
 	NSDEV=$(echo "$2" | awk -F"/dev/" '{print $2}')
 
 	GENERIC=$(ls /sys/class/scsi_tape/$NDEV/device/scsi_generic)
