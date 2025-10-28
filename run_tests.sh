@@ -15,9 +15,6 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 check_root
 
-modprobe -r scsi_debug
-modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=1 dev_size_mb=10000
-
 [[ $# -lt 6 ]] || [[ $# -gt 7 ]] && check_debug_params
 
 DEV="$1"
