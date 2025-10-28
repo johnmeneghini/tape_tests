@@ -7,6 +7,8 @@
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+counter=1
+
 stop_on_pos_err() {
 	echo "--- position_lost_in_reset TEST FAILED--- with status $1"
 	if [[ "$STOERR" -eq 1 ]]; then
@@ -31,10 +33,12 @@ stop_on_err() {
 
 do_cmd_true() {
 	echo  ""
-	echo  "--- $1"
+	echo  "--- $1 --- (test $counter)"
 	$1 2> .cmd_err || stop_on_err $1 $?
 	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && stop_on_cmd_err $1
 	rm -f .cmd_err
+	((counter++))
+
 }
 
 test_reset_blocked_false() {
@@ -51,11 +55,12 @@ test_reset_blocked_true() {
 
 do_cmd_false() {
 	echo  ""
-	echo  "--- $1"
+	echo  "--- $1 --- (test $counter)"
 	$1 2> .cmd_err && stop_on_err $1 $?
 	cat .cmd_err
 	[ -s .cmd_err ] || stop_on_cmd_err $1
 	rm -f .cmd_err
+	((counter++))
 }
 
 check_root() {
@@ -72,55 +77,54 @@ check_root() {
 
 check_debug_params() {
 	echo ""
-	echo " Usage: ${0##*/} <st_device> <sg_device> <debug> <dmesg> <stop_on_err> <scsi_level> [number]"
+	echo " Usage: ${0##*/} <st_device> <sg_device> <debug> <dmesg> <stop_on_error> <scsi_level> [number]"
 	echo ""
 	echo "     <st_device> : e.g.(/dev/nst1)"
 	echo "     <sg_device> : e.g (/dev/sg3)"
-	echo "     <debug>     : 1 = debug on | 0 = debug off"
-	echo "     <dmesg>     : 1 = dmesg on | 0 = dmesg off"
-	echo "     <stop>      : 1 = stop on error | 0 = continue on error"
-	echo " <scsi_level>    : 1 to 8 - see: /usr/src/kernels/$(uname -r)/include/scsi/scsi.h"
-	echo "    [number]     : optional: number of tape devices (defaults to 4)"
+	echo "         <debug> : 1 = debug on | 0 = debug off"
+	echo "         <dmesg> : 1 = dmesg on | 0 = dmesg off"
+	echo " <stop_on_error> : 1 =  stop on | 0 = stop off"
+	echo "    <scsi_level> : 1 to 8 - see: /usr/src/kernels/$(uname -r)/include/scsi/scsi.h"
+	echo "       [number]  : optional: number of tape devices (defaults to 4)"
 	echo "                      "
 	echo "  Example:"
 	echo ""
-	echo "      ${0##*/} /dev/nst1 /dev/sg3 1 1 2 0 1 # /dev/nst1 /dev/sg3 debug dmesg 0 SCSI_2 [1 tape device]"
-	echo "      ${0##*/} /dev/nst3 /dev/sg4 1 0 6 0   # /dev/nst3 /dev/sg4 debug nodmesg 0 SCSI_SPC_3"
-	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 0 1 8 2 # /dev/nst0 /dev/sg1 nodebug nodmesg 1 SCSI_SPC_5 [2 tape devices]"
+	echo "      ${0##*/} /dev/nst3 /dev/sg4 1 0 1 6   # /dev/nst3 /dev/sg4 debug nodmesg stop SCSI_SPC_3"
+	echo "      ${0##*/} /dev/nst1 /dev/sg3 1 1 0 2 1 # /dev/nst1 /dev/sg3 debug dmesg nostop SCSI_2 [1 tape device]"
+	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 0 0 8 2 # /dev/nst0 /dev/sg1 nodebug nodmesg nostop SCSI_SPC_5 [2 tape devices]"
 	echo ""
 
 	which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi
 	ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
 	modprobe -r scsi_debug
 	modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=1 dev_size_mb=1000
-	lsscsi -ig
-	modprobe -r scsi_debug
+	lsscsi -igN
 	exit 1
 }
 
 check_params() {
 	echo ""
-	echo " usage: ${0##*/} <st_device> <sg_device> <debug> <dmesg> <stop_on_err>"
+	echo " usage: ${0##*/} <st_device> <sg_device> <debug> <dmesg> <stop_on_error>"
 	echo ""
 	echo "    <st_device> : name of st device e.g.:(/dev/st1)"
 	echo "    <sg_device> : name of corresponding sg device e.g.: (/dev/sg3)"
-	echo "    <debug>  : 1 = debug on | 0 = debug off"
-	echo "    <dmesg>  : 1 = dmesg on | 0 = dmesg off"
-	echo "    <stop>   : 1 = stop on error | 0 = continue on error"
+	echo "        <debug> : 1 = debug on | 0 = debug off"
+	echo "        <dmesg> : 1 = dmesg on | 0 = dmesg off"
+	echo "<stop_on_error> : 1 =  stop on | 0 = stop off"
 	echo ""
 	echo "  These tests were developed with a QUANTUM ULTRIUM 4 U53F tape drive"
 	echo "  and is designed to be used with real hardware."
 	echo ""
 	echo "  Example:"
 	echo ""
-	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 0 1"
-	echo "      ${0##*/} /dev/nst1 /dev/sg2 1 0 0"
-	echo "      ${0##*/} /dev/st0 /dev/sg1 1 1 1"
+	echo "      ${0##*/} /dev/nst3 /dev/sg4 1 0 1  # /dev/nst3 /dev/sg4 debug nodmesg stop"
+	echo "      ${0##*/} /dev/nst1 /dev/sg3 1 1 0  # /dev/nst1 /dev/sg3 debug dmesg nostop"
+	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 0 0  # /dev/nst0 /dev/sg1 nodebug nodmesg nostop"
 	echo ""
 
 	which mt > /dev/null 2>&1 || dnf install -y mt-st
 	which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi
-	lsscsi -ig
+	lsscsi -igN
 	ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
 	exit 1
 }
@@ -128,7 +132,40 @@ check_params() {
 check_param2() {
 	if [ ! -c $1 ]; then
 		echo "  Invalid argument: ${1}" >&2
-		lsscsi -ig
+		lsscsi -igN
+		exit 1
+	fi
+}
+
+check_dev_nodebug_param() {
+	NDEV=$(echo "$1" | awk -F"/dev/" '{print $2}')
+
+	MODEL=$(cat /sys/class/scsi_tape/$NDEV/device/model)
+
+	if [[ "$MODEL" == "scsi_debug" ]]; then
+		echo "  Invalid argument: $1 is a scsi_debug device ($MODEL)" >&2
+		exit 1
+	fi
+}
+
+check_dev_debug_param() {
+	NDEV=$(echo "$1" | awk -F"/dev/" '{print $2}')
+
+	MODEL=$(cat /sys/class/scsi_tape/$NDEV/device/model)
+
+	if [[ "$MODEL" != "scsi_debug" ]]; then
+		echo "  Invalid Argument: $1 is not a scsi_debug device ($MODEL)" >&2
+		exit 1
+	fi
+}
+
+check_sdev_params() {
+	NSDEV=$(echo "$2" | awk -F"/dev/" '{print $2}')
+
+	GENERIC=$(ls /sys/class/scsi_tape/$NDEV/device/scsi_generic)
+
+	if [[ "$GENERIC" != "$NSDEV" ]]; then
+		echo "  Invalid argument: $2 is not the generic device for $1 ($GENERIC)" >&2
 		exit 1
 	fi
 }

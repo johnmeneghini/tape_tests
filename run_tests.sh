@@ -15,16 +15,23 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 check_root
 
-[[ $# -lt 4 ]] || [[ $# -gt 4 ]] && check_params
+modprobe -r scsi_debug
+modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=1 dev_size_mb=10000
+
+[[ $# -lt 6 ]] || [[ $# -gt 7 ]] && check_debug_params
 
 DEV="$1"
 SDEV="$2"
 
 check_param2 $DEV
 check_param2 $SDEV
+check_sdev_params $DEV $SDEV
 
 DEBUG="$3"
 DMESG="$4"
+STOERR="$5"
+SL="$6"
+N="$7"
 
 if [ -f $PWD/tape_reset_tests.log ]; then
 	echo "rm -f  tape_reset_tests.log"
@@ -34,14 +41,19 @@ fi
 
 echo ""
 
-for TEST in  $DIR/tape_reset_test.sh ;
-do
-#	echo "$TEST $DEV $SDEV $DEBUG $DMESG"
-	$TEST $DEV $SDEV $DEBUG $DMESG 2>&1 | tee -a tape_reset_tests.log
-done
+# Determine which test to run by looking at the device model
+
+NDEV=$(echo "$DEV" | awk -F"/dev/" '{print $2}')
+MODEL=$(cat /sys/class/scsi_tape/$NDEV/device/model)
+
+if [[ "$MODEL" == "scsi_debug" ]]; then
+	$DIR/tape_reset_test_debug.sh $DEV $SDEV $DEBUG $DMESG $STOERR $SL $N 2>&1 | tee -a tape_reset_tests.log
+else
+	$DIR/tape_reset_test.sh $DEV $SDEV $DEBUG $DMESG $STOERR 2>&1 | tee -a tape_reset_tests.log
+fi
 
 if [ -f $PWD/tape_reset_tests.log ]; then
-	grep -E "TEST.FAILED|failed" $PWD/tape_reset_tests.log
+	grep -A 2 -E "TEST.FAILED" $PWD/tape_reset_tests.log
 fi
 
 echo ""

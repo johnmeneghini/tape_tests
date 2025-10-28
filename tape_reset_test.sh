@@ -24,6 +24,8 @@ echo "$D"
 
 check_param2 $DEV
 check_param2 $SDEV
+check_sdev_params $DEV $SDEV
+check_dev_nodebug_param $DEV
 
 DEBUG="$3"
 DMESG="$4"

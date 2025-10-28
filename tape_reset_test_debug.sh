@@ -33,7 +33,7 @@ modprobe -r scsi_debug
 echo ""
 echo "--- modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=$N dev_size_mb=10000 scsi_level=$SL"
 modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=$N dev_size_mb=10000 scsi_level=$SL
-lsscsi -ig
+lsscsi -igN
 echo ""
 
 dev="$1"
@@ -41,6 +41,8 @@ sdev="$2"
 
 check_param2 "$dev"
 check_param2 "$sdev"
+check_sdev_params $dev $sdev
+check_dev_debug_param $dev
 
 set_debug
 
