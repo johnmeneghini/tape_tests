@@ -46,7 +46,7 @@ echo ""
 NDEV=$(echo "$DEV" | awk -F"/dev/" '{print $2}')
 MODEL=$(cat /sys/class/scsi_tape/$NDEV/device/model)
 
-if [[ "$MODEL" == "scsi_debug" ]]; then
+if [[ "$MODEL" == "scsi_debug"* ]]; then
 	$DIR/tape_reset_test_debug.sh $DEV $SDEV $DEBUG $DMESG $STOERR $SL $N 2>&1 | tee -a tape_reset_tests.log
 else
 	$DIR/tape_reset_test.sh $DEV $SDEV $DEBUG $DMESG $STOERR 2>&1 | tee -a tape_reset_tests.log
