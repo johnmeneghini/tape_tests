@@ -94,6 +94,8 @@ check_debug_params() {
 	echo "     <sg_device> : e.g (/dev/sg3)"
 	echo "         <debug> : 1 = debug on | 0 = debug off"
 	echo "         <dmesg> : 1 = dmesg on | 0 = dmesg off"
+	echo "         <dmesg> : 1|2 = dmesg on | 0 = dmesg off"
+	echo "                 : When dmesg == 2 dmesg output is piped to $PWD/dmesg.log"
 	echo " <stop_on_error> : 1 =  stop on | 0 = stop off"
 	echo "    <scsi_level> : 1 to 8 - see: /usr/src/kernels/$(uname -r)/include/scsi/scsi.h"
 	echo "       [number]  : optional: number of tape devices (defaults to 4)"
@@ -102,7 +104,7 @@ check_debug_params() {
 	echo ""
 	echo "      ${0##*/} /dev/nst3 /dev/sg4 1 0 1 6   # /dev/nst3 /dev/sg4 debug nodmesg stop SCSI_SPC_3"
 	echo "      ${0##*/} /dev/nst1 /dev/sg3 1 1 0 2 1 # /dev/nst1 /dev/sg3 debug dmesg nostop SCSI_2 [1 tape device]"
-	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 0 0 8 2 # /dev/nst0 /dev/sg1 nodebug nodmesg nostop SCSI_SPC_5 [2 tape devices]"
+	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 2 0 8 2 # /dev/nst0 /dev/sg1 nodebug dmesg nostop SCSI_SPC_5 [2 tape devices]"
 	echo ""
 
 	which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi
@@ -120,7 +122,8 @@ check_params() {
 	echo "    <st_device> : name of st device e.g.:(/dev/st1)"
 	echo "    <sg_device> : name of corresponding sg device e.g.: (/dev/sg3)"
 	echo "        <debug> : 1 = debug on | 0 = debug off"
-	echo "        <dmesg> : 1 = dmesg on | 0 = dmesg off"
+	echo "        <dmesg> : 1|2 = dmesg on | 0 = dmesg off"
+	echo "                : When dmesg == 2 dmesg output is piped to $PWD/dmesg.log"
 	echo "<stop_on_error> : 1 =  stop on | 0 = stop off"
 	echo ""
 	echo "  These tests were developed with a QUANTUM ULTRIUM 4 U53F tape drive"
@@ -130,7 +133,7 @@ check_params() {
 	echo ""
 	echo "      ${0##*/} /dev/nst3 /dev/sg4 1 0 1  # /dev/nst3 /dev/sg4 debug nodmesg stop"
 	echo "      ${0##*/} /dev/nst1 /dev/sg3 1 1 0  # /dev/nst1 /dev/sg3 debug dmesg nostop"
-	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 0 0  # /dev/nst0 /dev/sg1 nodebug nodmesg nostop"
+	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 2 0  # /dev/nst0 /dev/sg1 nodebug dmesg nostop"
 	echo ""
 
 	which mt > /dev/null 2>&1 || dnf install -y mt-st
@@ -198,14 +201,19 @@ set_dmesg() {
 	echo ""
 	echo -n "--- "
 	uname -r
-	if [ "$DMESG" -gt 0 ]; then
+	if [ "$DMESG" -eq 1 ]; then
 		dmesg -C
 		dmesg -Tw &
+	elif [ "$DMESG" -eq 2 ]; then
+		dmesg -C
+		dmesg -Tw 2>&1 > dmseg.log &
+		tail -f dmseg.log | grep -E "Power.on/reset.recognized|Unit.Attention" &
 	fi
 }
 
 clear_dmesg() {
 	if [ "$DMESG" -gt 0 ]; then
-	    ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
+		ps x | grep "tail" | grep "\-f" | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
+		ps x | grep "dmesg" | grep "\-Tw" | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
 	fi
 }
