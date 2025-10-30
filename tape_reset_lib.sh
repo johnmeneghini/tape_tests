@@ -202,11 +202,15 @@ set_dmesg() {
 	echo -n "--- "
 	uname -r
 	if [ "$DMESG" -eq 1 ]; then
+		echo "tailing dmseg"
 		dmesg -C
 		dmesg -Tw &
 	elif [ "$DMESG" -eq 2 ]; then
+		echo "creating $PWD/dmseg.log"
 		dmesg -C
+		rm -f dmseg.log
 		dmesg -Tw 2>&1 > dmseg.log &
+		sleep 2
 		tail -f dmseg.log | grep -E "Power.on/reset.recognized|Unit.Attention" &
 	fi
 }
