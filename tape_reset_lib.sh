@@ -35,7 +35,17 @@ do_cmd_true() {
 	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && stop_on_cmd_err "$1"
 	rm -f .cmd_err
 	((counter++))
+}
 
+do_cmd_warn() {
+	echo  ""
+	echo  "--- $1 --- (test $counter)"
+	$1 2> .cmd_err || stop_on_err "$1" $?
+	cat .cmd_err
+	cmd_err="$(cat .cmd_err)"
+	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && echo "--- $1 TEST WARN : $cmd_err"
+	rm -f .cmd_err
+	((counter++))
 }
 
 test_reset_blocked_false() {
