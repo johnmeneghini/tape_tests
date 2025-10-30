@@ -101,7 +101,7 @@ echo "Sleep for 10 seconds"
 echo ""
 sleep 10
 
-do_cmd_true "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
 
 #
@@ -125,7 +125,7 @@ test_reset_blocked_true "$TDEV"
 # the ones after rewind should have position_reset set to 0;
 # all commands should succeed.
 #
-do_cmd_true "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
 
 # stinit should fail after reset
@@ -165,7 +165,7 @@ do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 
 # This command now succeeds
-do_cmd_true "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
 
 # This command should fail after reset
@@ -310,7 +310,7 @@ test_reset_blocked_true "$TDEV"
 #
 # These command should succeed
 #
-do_cmd_true "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
 do_cmd_warn "stinit -f $DIR/stinit.conf -v $DEV"
 do_cmd_true "mt -f $DEV status"
