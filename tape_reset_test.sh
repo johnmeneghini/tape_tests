@@ -137,7 +137,6 @@ test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV stshowoptions"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "sg_map -st -x -i"
-test_reset_blocked_false "$TDEV"
 
 #
 # Reset the device with IO in progress

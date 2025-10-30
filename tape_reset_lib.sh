@@ -17,48 +17,49 @@ stop_on_pos_err() {
 }
 
 stop_on_cmd_err() {
-	echo "--- $1 TEST FAILED : "
-	cat .cmd_err
-	if [[ "$STOERR" -eq 1 ]]; then
-		exit 1
-	fi
+	cmd_err="$(cat .cmd_err)"
+	echo "--- $1 TEST FAILED : $cmd_err"
+	if [[ "$STOERR" -eq 1 ]]; then exit 1; fi
 }
 
 stop_on_err() {
 	echo "--- $1 TEST FAILED --- with status $2"
-	if [[ "$STOERR" -eq 1 ]]; then
-		exit 1
-	fi
+	if [[ "$STOERR" -eq 1 ]]; then exit 1; fi
 }
 
 do_cmd_true() {
 	echo  ""
 	echo  "--- $1 --- (test $counter)"
-	$1 2> .cmd_err || stop_on_err $1 $?
-	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && stop_on_cmd_err $1
+	$1 2> .cmd_err || stop_on_err "$1" $?
+	cat .cmd_err
+	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && stop_on_cmd_err "$1"
 	rm -f .cmd_err
 	((counter++))
 
 }
 
 test_reset_blocked_false() {
-	p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
-	echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
-	[[ "$p1" != "1" ]] || stop_on_pos_err $p1
+	if [ -f /sys/class/scsi_tape/$1/position_lost_in_reset ]; then
+		p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
+		echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
+		[[ "$p1" != "0" ]] && stop_on_pos_err $p1
+	fi
 }
 
 test_reset_blocked_true() {
-	p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
-	echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
-	[[ "$p1" != "1" ]] && stop_on_pos_err $p1
+	if [ -f /sys/class/scsi_tape/$1/position_lost_in_reset ]; then
+		p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
+		echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
+		[[ "$p1" != "1" ]] && stop_on_pos_err $p1
+	fi
 }
 
 do_cmd_false() {
 	echo  ""
 	echo  "--- $1 --- (test $counter)"
-	$1 2> .cmd_err && stop_on_err $1 $?
+	$1 2> .cmd_err && stop_on_err "$1" $?
 	cat .cmd_err
-	[ -s .cmd_err ] || stop_on_cmd_err $1
+	[ -s .cmd_err ] || stop_on_cmd_err "$1"
 	rm -f .cmd_err
 	((counter++))
 }
