@@ -69,7 +69,7 @@ do_cmd_false() {
 	echo  "--- $1 --- (test $counter)"
 	$1 2> .cmd_err && stop_on_err "$1" $?
 	cat .cmd_err
-	[ -s .cmd_err ] || stop_on_cmd_err "$1"
+	[ -s .cmd_err ] && stop_on_cmd_err "$1"
 	rm -f .cmd_err
 	((counter++))
 }
