@@ -99,6 +99,7 @@ done
 echo " Load the tape"
 for i in $(seq $h $j); do
     do_cmd_true "mt -f $TAPE$i load"
+    test_reset_blocked_false "nst$i"
 done
 
 echo " Check the status"
@@ -138,11 +139,12 @@ h=$DEV
 j=$DEV
 ((j=j+g))
 
-do_cmd_true "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
+check_dmesg
 
 echo " Send the stinit cmmmand"
 for i in $(seq $h $j); do
-    do_cmd_true "stinit -f $DIR/stinit.conf -v $TAPE$i"
+    do_cmd_warn "stinit -f $DIR/stinit.conf -v $TAPE$i"
 done
 
 echo " Check the status"
@@ -158,7 +160,7 @@ done
 
 echo " Set options"
 for i in $(seq $h $j); do
-   do_cmd_false "mt -f $TAPE$i stsetoptions no-blklimits"
+   do_cmd_true "mt -f $TAPE$i stsetoptions no-blklimits"
 done
 
 echo " Read options"
