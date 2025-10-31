@@ -206,12 +206,9 @@ set_dmesg() {
 		dmesg -C
 		dmesg -Tw &
 	elif [ "$DMESG" -eq 2 ]; then
-		echo "creating $PWD/dmseg.log"
+		echo "filtering dmseg"
 		dmesg -C
-		rm -f dmseg.log
-		dmesg -Tw 2>&1 > dmseg.log &
-		sleep 2
-		tail -f dmseg.log | grep -E "Power.on/reset.recognized|Unit.Attention" &
+		dmesg -Tw | grep -E "Power.on/reset.recognized|Unit.Attention" &
 	fi
 }
 
