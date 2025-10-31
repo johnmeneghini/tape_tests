@@ -201,23 +201,28 @@ set_dmesg() {
 	echo ""
 	echo -n "--- "
 	uname -r
+	dmesg -C
 	if [ "$DMESG" -eq 1 ]; then
 		echo "tailing dmseg"
-		dmesg -C
 		dmesg -Tw &
 	elif [ "$DMESG" -eq 2 ]; then
 		echo "creating $PWD/dmseg.log"
-		dmesg -C
-		rm -f dmseg.log
 		dmesg -Tw 2>&1 > dmseg.log &
-		sleep 2
-		tail -f dmseg.log | grep -E "Power.on/reset.recognized|Unit.Attention" &
 	fi
+}
+
+check_dmesg() {
+	case "$DMESG" in
+		1)
+			# Do nothing
+			;;
+		*) dmesg | tail -5  | grep -E "Power.on/reset.recognized|Unit.Attention"
+			;;
+	esac
 }
 
 clear_dmesg() {
 	if [ "$DMESG" -gt 0 ]; then
-		ps x | grep "tail" | grep "\-f" | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
-		ps x | grep "dmesg" | grep "\-Tw" | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
+		ps x | grep "dmesg" | grep "Tw" | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
 	fi
 }

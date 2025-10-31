@@ -103,6 +103,7 @@ sleep 10
 
 do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
+check_dmesg
 
 #
 # These commands should fail
@@ -163,6 +164,7 @@ echo ""
 #
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
+check_dmesg
 
 # This command now succeeds
 do_cmd_warn "sg_map -st -x -i"
@@ -196,6 +198,7 @@ echo ""
 #
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
+check_dmesg
 
 #
 # retension should succeed after reset
@@ -227,6 +230,7 @@ sleep 10
 #
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
+check_dmesg
 
 #
 # eject should succeed after reset
@@ -257,6 +261,7 @@ sleep 3
 #
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_true "$TDEV"
+check_dmesg
 
 #
 # These commands fail when there's no tape.
@@ -301,6 +306,7 @@ sleep 3
 #
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
+check_dmesg
 do_cmd_false "mt -f $DEV weof 1"
 do_cmd_false "mt -f $DEV wset 1"
 do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
@@ -335,6 +341,7 @@ sleep 3
 #
 do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
+check_dmesg
 do_cmd_false "mt -f $DEV weof 1"
 do_cmd_false "mt -f $DEV wset 1"
 test_reset_blocked_true "$TDEV"
