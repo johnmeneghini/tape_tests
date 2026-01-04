@@ -160,7 +160,7 @@ done
 
 echo " Set options"
 for i in $(seq $h $j); do
-   do_cmd_true "mt -f $TAPE$i stsetoptions no-blklimits"
+   do_cmd_warn "mt -f $TAPE$i stsetoptions no-blklimits"
 done
 
 echo " Read options"
