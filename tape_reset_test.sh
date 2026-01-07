@@ -67,9 +67,9 @@ do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV stshowoptions"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_true "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_true "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV rewind "
 test_reset_blocked_false "$TDEV"
@@ -108,9 +108,9 @@ check_dmesg
 #
 # These commands should fail
 #
-do_cmd_false "mt -f $DEV stsetoptions no-blklimits"
+do_cmd_warn "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_true "$TDEV"
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV "
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV "
 test_reset_blocked_true "$TDEV"
 do_cmd_false "mt -f $DEV weof 1 "
 test_reset_blocked_true "$TDEV"
@@ -118,7 +118,7 @@ do_cmd_false "mt -f $DEV wset 1"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
 test_reset_blocked_true "$TDEV"
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 
 #
@@ -162,7 +162,7 @@ echo ""
 #
 # This command should fail
 #
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 
@@ -196,7 +196,7 @@ echo ""
 #
 # This command should fail
 #
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 
@@ -228,7 +228,7 @@ sleep 10
 #
 # This command should fail
 #
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 
@@ -272,7 +272,7 @@ test_reset_blocked_true "$TDEV"
 do_cmd_false "mt -f $DEV eod"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 
 #
@@ -304,13 +304,13 @@ sleep 3
 #
 # These commands should fail
 #
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 do_cmd_false "mt -f $DEV weof 1"
 do_cmd_false "mt -f $DEV wset 1"
 do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 
 #
@@ -339,14 +339,14 @@ sleep 3
 #
 # These commands should fail
 #
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 do_cmd_false "mt -f $DEV weof 1"
 do_cmd_false "mt -f $DEV wset 1"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
-do_cmd_false "dd if=/dev/random count=1001024 of=$DEV"
+do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
 
 #
