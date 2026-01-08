@@ -12,6 +12,7 @@ counter=1
 stop_on_pos_err() {
 	echo "--- position_lost_in_reset TEST FAILED--- with status $1"
 	if [[ "$STOERR" -eq 1 ]]; then
+		echo "Exiting"
 		exit 1
 	fi
 }
@@ -19,12 +20,18 @@ stop_on_pos_err() {
 stop_on_cmd_err() {
 	cmd_err="$(cat .cmd_err)"
 	echo "--- $1 TEST FAILED : $cmd_err"
-	if [[ "$STOERR" -eq 1 ]]; then exit 1; fi
+	if [[ "$STOERR" -eq 1 ]]; then
+		echo "Exiting"
+		exit 1;
+	fi
 }
 
 stop_on_err() {
 	echo "--- $1 TEST FAILED --- with status $2"
-	if [[ "$STOERR" -eq 1 ]]; then exit 1; fi
+	if [[ "$STOERR" -eq 1 ]]; then
+		echo "Exiting"
+		exit 1;
+	fi
 }
 
 do_cmd_true() {
