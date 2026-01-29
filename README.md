@@ -26,7 +26,7 @@ on your tape drive.
 Example:
 
 ```
-  dnf install -y git, lsscsi, mt-st, sg3_utils
+  sudo dnf install -y git lsscsi mt-st sg3_utils
   git clone https://github.com/johnmeneghini/tape_tests.git
   cd tape_tests
   sudo ./run_tests.sh /dev/nst0 /dev/sg1 0 0 0 6 1
