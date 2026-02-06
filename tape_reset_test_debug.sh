@@ -178,21 +178,16 @@ for i in $(seq $h $j); do
     do_cmd_false "mt -f $TAPE$i tell"
 done
 
-echo " Rewind the tape"
-for i in $(seq $h $j); do
-   do_cmd_true "mt -f $TAPE$i rewind"
-done
-
 echo " Try reading the tape"
 for i in $(seq $h $j); do
-    do_cmd_true "dd if=$TAPE$i count=50 of=/dev/null"
-    test_reset_blocked_false "nst$i"
+    do_cmd_false "dd if=$TAPE$i count=50 of=/dev/null"
+    test_reset_blocked_true "nst$i"
 done
 
 echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true " mt -f $TAPE$i status"
-    do_cmd_warn "mt -f $TAPE$i tell"
+    do_cmd_false "mt -f $TAPE$i tell"
 done
 
 echo " Load the tape"
@@ -204,6 +199,7 @@ echo " Check the status"
 for i in $(seq $h $j); do
     do_cmd_true "mt -f $TAPE$i status"
     test_reset_blocked_false "nst$i"
+    do_cmd_true "mt -f $TAPE$i tell"
 done
 
 echo " Read options"
@@ -225,16 +221,20 @@ echo " Try writing to the tape"
 for i in $(seq $h $j); do
     do_cmd_true "dd if=/dev/random count=50 of=$TAPE$i "
     do_cmd_true "mt -f $TAPE$i weof 1 "
+    do_cmd_true "mt -f $TAPE$i tell"
 done
 
 echo " Rewind the tape"
 for i in $(seq $h $j); do
    do_cmd_true "mt -f $TAPE$i rewind"
+   do_cmd_true "mt -f $TAPE$i status"
+   do_cmd_true "mt -f $TAPE$i tell"
 done
 
 echo " Try reading the tape"
 for i in $(seq $h $j); do
     do_cmd_true "dd if=$TAPE$i count=50 of=/dev/null"
+    do_cmd_true "mt -f $TAPE$i tell"
 done
 
 echo " Check the status"

@@ -92,7 +92,13 @@ do_cmd_true "mt -f $DEV eod"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV tell"
-test_reset_blocked_false "$TDEV"
+do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV tell"
+
+EOD="$(mt -f $DEV tell)"
+echo ""
+echo " End of Data is $EOD"
+echo ""
 
 #
 # Reset the device and wait
@@ -116,7 +122,7 @@ do_cmd_warn "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=/dev/random count=11001024 of=$DEV "
 test_reset_blocked_true "$TDEV"
-do_cmd_warn "mt -f $DEV tell"
+do_cmd_false "mt -f $DEV tell"
 do_cmd_false "mt -f $DEV weof 1 "
 test_reset_blocked_true "$TDEV"
 do_cmd_false "mt -f $DEV wset 1"
@@ -125,7 +131,7 @@ do_cmd_false "dd if=$DEV count=1024 of=/dev/null"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=/dev/random count=11001024 of=$DEV"
 test_reset_blocked_true "$TDEV"
-do_cmd_warn "mt -f $DEV tell"
+do_cmd_false "mt -f $DEV tell"
 
 #
 # The commands before rewind should have position_reset set to 1
@@ -140,7 +146,7 @@ do_cmd_warn "stinit -f $DIR/stinit.conf -v $DEV"
 test_reset_blocked_true "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_true "$TDEV"
-do_cmd_warn "mt -f $DEV tell"
+do_cmd_false "mt -f $DEV tell"
 
 do_cmd_true "mt -f $DEV rewind"
 test_reset_blocked_false "$TDEV"
@@ -148,6 +154,7 @@ do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV tell"
 do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV tell"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_false "$TDEV"
@@ -382,6 +389,11 @@ do_cmd_true "sg_map -st -x -i"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "stinit -f $DIR/stinit.conf -v $DEV"
 test_reset_blocked_false "$TDEV"
+
+EOD="$(mt -f $DEV tell)"
+echo ""
+echo " End of Data is $EOD"
+echo ""
 
 sleep 3
 clear_dmesg
