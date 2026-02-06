@@ -99,6 +99,11 @@ To run your test against a scsi_debug driver simply provide the `/dev/nst` and
 [6:0:1:0]    enclosu LSI      virtualSES       02    -          -  /dev/sg2
 [8:0:0:0]    tape    Linux    scsi_debug       0191  /dev/st1   -  /dev/sg3
 ```
+Example run:
+
+```
+sudo ./tape_reset_test.sh /dev/nst0 /dev/sg2 0 2 1  2>&1 | tee -a tape_reset_test.log
+```
 
 ### tape_reset_test_debug.sh
 
