@@ -6,6 +6,10 @@
 #
 # Requires access to a physical tape drive.
 #
+# Requires
+#
+# yum install -y mt-st lsscsi sg3_utils
+#
 # This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive.
 #
 

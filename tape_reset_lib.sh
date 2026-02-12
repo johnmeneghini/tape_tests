@@ -93,6 +93,11 @@ check_root() {
 		echo "  Error: $DIR/tape_reset.sh is missing"
 		exit 1
 	fi
+
+	which mt > /dev/null 2>&1 || yum install -y mt-st
+	which lsscsi > /dev/null 2>&1 || yum install -y lsscsi
+	which sg_reset > /dev/null 2>&1 || yum install -y sg3_utils
+
 }
 
 check_debug_params() {
@@ -116,7 +121,6 @@ check_debug_params() {
 	echo "      ${0##*/} /dev/nst0 /dev/sg1 0 2 0 8 2 # /dev/nst0 /dev/sg1 nodebug dmesg nostop SCSI_SPC_5 [2 tape devices]"
 	echo ""
 
-	which lsscsi > /dev/null 2>&1 || dnf install -y lsscsi
 	ps x | grep dmesg | grep Tw | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
 	modprobe -r scsi_debug
 	modprobe scsi_debug tur_ms_to_ready=10000 ptype=1  max_luns=1 dev_size_mb=1000
