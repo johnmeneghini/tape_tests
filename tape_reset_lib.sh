@@ -208,6 +208,11 @@ set_debug() {
 	echo ""
 	echo -n "/sys/module/st/drivers/scsi\:st/debug_flag : "
 	cat /sys/module/st/drivers/scsi\:st/debug_flag
+
+}
+
+set_options() {
+	mt -f $1 stshowoptions && STSHOWOPT=stshowoptions || STSHOWOPT=stshowopt
 }
 
 set_dmesg() {
@@ -238,4 +243,8 @@ clear_dmesg() {
 	if [ "$DMESG" -gt 0 ]; then
 		ps x | grep "dmesg" | grep "Tw" | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
 	fi
+}
+
+set_options() {
+	mt -f $1 stshowoptions && STSHOWOPT=stshowoptions || STSHOWOPT=stshowopt
 }
