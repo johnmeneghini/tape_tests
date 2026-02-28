@@ -44,6 +44,7 @@ echo ""
 
 TDEV=$(echo "$DEV" | awk -F"/" '{print $3}')
 
+STSHOWOPT=stshowoptions
 set_options $DEV
 
 if [[ ! -f tape_test_random_file.img ]]; then
@@ -76,11 +77,11 @@ test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "mt -f $DEV tell"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "mt -f $DEV $STSHOWOTP"
+do_cmd_true "mt -f $DEV $STSHOWOPT"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "mt -f $DEV $STSHOWOTP"
+do_cmd_true "mt -f $DEV $STSHOWOPT"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "dd if=tape_test_file.img of=$DEV status=progress iflag=fullblock"
 test_reset_blocked_false "$TDEV"
@@ -170,7 +171,7 @@ do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "mt -f $DEV $STSHOWOTP"
+do_cmd_true "mt -f $DEV $STSHOWOPT"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "sg_map -st -x -i"
 test_reset_blocked_false "$TDEV"
