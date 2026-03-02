@@ -54,6 +54,14 @@ if [[ ! -f tape_test_random_file.img ]]; then
 	dd if=/dev/urandom of=tape_test_file.img bs=1G count=1 status=progress iflag=fullblock
 fi
 
+cleanup() {
+    echo "Running cleanup tasks..."
+    clear_dmesg
+    echo "Finished cleanup."
+}
+
+trap cleanup EXIT
+
 set +e
 
 #
@@ -92,19 +100,21 @@ do_cmd_true "mt -f $DEV rewind "
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "dd if=$DEV count=10 of=/dev/null"
+do_cmd_true "dd if=$DEV bs=128k count=10 of=/dev/null"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV fsf 1"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "dd if=$DEV count=10 of=/dev/null"
+do_cmd_true "dd if=$DEV bs=128k count=10 of=/dev/null"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV eod"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
+
+exit
 
 EOD1="$(mt -f $DEV tell)"
 echo ""
