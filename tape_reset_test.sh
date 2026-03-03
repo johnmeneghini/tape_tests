@@ -47,7 +47,7 @@ TDEV=$(echo "$DEV" | awk -F"/" '{print $3}')
 STSHOWOPT=stshowoptions
 set_options $DEV
 
-if [[ ! -f tape_test_random_file.img ]]; then
+if [[ ! -f tape_test_file.img ]]; then
 	echo ""
 	echo "Create a 1GB files for use with the tape test"
 	echo ""
