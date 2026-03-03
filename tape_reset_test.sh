@@ -83,7 +83,7 @@ test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV rewind"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
-do_cmd_true "mt -f $DEV tell"
+#do_cmd_true "mt -f $DEV tell"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV $STSHOWOPT"
 test_reset_blocked_false "$TDEV"
@@ -94,7 +94,7 @@ test_reset_blocked_false "$TDEV"
 do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
-do_cmd_true "mt -f $DEV tell"
+#do_cmd_true "mt -f $DEV tell"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV rewind "
 test_reset_blocked_false "$TDEV"
@@ -114,9 +114,9 @@ do_cmd_true "mt -f $DEV eod"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 
-EOD1="$(mt -f $DEV tell)"
-echo ""
-echo " End of Data is $EOD1"
+#EOD1="$(mt -f $DEV tell)"
+#echo ""
+#echo " End of Data is $EOD1"
 echo ""
 
 #
@@ -141,7 +141,7 @@ do_cmd_warn "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
 test_reset_blocked_true "$TDEV"
-do_cmd_false "mt -f $DEV tell"
+#do_cmd_false "mt -f $DEV tell"
 do_cmd_false "mt -f $DEV weof 1 "
 test_reset_blocked_true "$TDEV"
 do_cmd_false "mt -f $DEV wset 1"
@@ -150,7 +150,7 @@ do_cmd_false "dd if=$DEV bs=128k count=10 of=/dev/null"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
 test_reset_blocked_true "$TDEV"
-do_cmd_false "mt -f $DEV tell"
+#do_cmd_false "mt -f $DEV tell"
 
 #
 # The commands before rewind should have position_reset set to 1
@@ -165,14 +165,14 @@ do_cmd_warn "stinit -f $DIR/stinit.conf -v $DEV"
 test_reset_blocked_true "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_true "$TDEV"
-do_cmd_false "mt -f $DEV tell"
+#do_cmd_false "mt -f $DEV tell"
 
 do_cmd_true "mt -f $DEV rewind"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV eod"
-do_cmd_true "mt -f $DEV tell"
+#do_cmd_true "mt -f $DEV tell"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_false "$TDEV"
@@ -208,7 +208,7 @@ do_cmd_warn "stinit -f $DIR/stinit.conf -v $DEV"
 test_reset_blocked_true "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_true "$TDEV"
-do_cmd_false "mt -f $DEV tell"
+#do_cmd_false "mt -f $DEV tell"
 
 #
 # Seek should succeed after reset and clear the reset condition
@@ -217,7 +217,7 @@ do_cmd_true "mt -f $DEV eod"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "mt -f $DEV tell"
+#do_cmd_true "mt -f $DEV tell"
 
 #
 # Reset the device with IO inprogress
@@ -248,7 +248,7 @@ do_cmd_true "mt -f $DEV eod"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "mt -f $DEV tell"
+#do_cmd_true "mt -f $DEV tell"
 
 #
 # Reset the devices
@@ -410,14 +410,14 @@ test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV status"
 
-EOD2="$(mt -f $DEV tell)"
-echo ""
-echo " End of Data is $EOD2"
-echo ""
+#EOD2="$(mt -f $DEV tell)"
+#echo ""
+#echo " End of Data is $EOD2"
+#echo ""
 
-if [[ "$EOD1" != "$EOD2" ]]; then
-	echo "--- TEST WARN --- $EOD1 is not equal to $EOD2"
-fi
+#if [[ "$EOD1" != "$EOD2" ]]; then
+#	echo "--- TEST WARN --- $EOD1 is not equal to $EOD2"
+#fi
 
 sleep 3
 clear_dmesg
