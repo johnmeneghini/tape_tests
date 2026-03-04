@@ -10,7 +10,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 counter=1
 
 stop_on_pos_err() {
-	echo -e "\033[31m--- position_lost_in_reset TEST FAILED--- with status $1\033[0m"
+	echo "--- position_lost_in_reset TEST FAILED--- with status $1"
 	if [[ "$STOERR" -eq 1 ]]; then
 		echo "Exiting"
 		exit 1
@@ -19,7 +19,7 @@ stop_on_pos_err() {
 
 stop_on_cmd_err() {
 	cmd_err="$(cat .cmd_err)"
-	echo -e "\033[31m--- $1 TEST FAILED : $cmd_err\033[0m"
+	echo "--- $1 TEST FAILED : $cmd_err"
 	if [[ "$STOERR" -eq 1 ]]; then
 		echo "Exiting"
 		exit 1;
@@ -27,7 +27,7 @@ stop_on_cmd_err() {
 }
 
 stop_on_err() {
-	echo -e "\033[31m--- $1 TEST FAILED --- with status $2\033[0m"
+	echo "--- $1 TEST FAILED --- with status $2"
 	if [[ "$STOERR" -eq 1 ]]; then
 		echo "Exiting"
 		exit 1;
@@ -51,8 +51,8 @@ do_cmd_warn() {
 	$1 2> .cmd_err || err=$?
 	cat .cmd_err
 	cmd_err="$(cat .cmd_err)"
-	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && echo -e "\033[33m--- $1 TEST WARN : $cmd_err\033[0m"
-	if [[ $err -ne 0 ]]; then echo -e "\033[33m--- $1 TEST WARN : returned status $err\033[0m" ; fi
+	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && echo "--- $1 TEST WARN : $cmd_err"
+	if [[ $err -ne 0 ]]; then echo "--- $1 TEST WARN : returned status $err"; fi
 	rm -f .cmd_err
 	((counter++))
 }
