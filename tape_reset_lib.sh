@@ -10,33 +10,37 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 counter=1
 
 stop_on_pos_err() {
-	echo "--- position_lost_in_reset TEST FAILED--- with status $1"
+	DATE=$(date +%T)
+	echo "--- position_lost_in_reset TEST FAILED--- with status $1 $DATE"
 	if [[ "$STOERR" -eq 1 ]]; then
-		echo "Exiting"
+		echo "Exiting $DATE"
 		exit 1
 	fi
 }
 
 stop_on_cmd_err() {
+	DATE=$(date +%T)
 	cmd_err="$(cat .cmd_err)"
 	echo "--- $1 TEST FAILED : $cmd_err"
 	if [[ "$STOERR" -eq 1 ]]; then
-		echo "Exiting"
+		echo "Exiting $DATE"
 		exit 1;
 	fi
 }
 
 stop_on_err() {
-	echo "--- $1 TEST FAILED --- with status $2"
+	DATE=$(date +%T)
+	echo "--- $1 TEST FAILED --- with status $2 $DATE"
 	if [[ "$STOERR" -eq 1 ]]; then
-		echo "Exiting"
+		echo "Exiting $DATE"
 		exit 1;
 	fi
 }
 
 do_cmd_true() {
+	DATE=$(date +%T)
 	echo  ""
-	echo  "--- $1 --- (test $counter)"
+	echo  "--- $1 --- (test $counter) $DATE"
 	$1 2> .cmd_err || stop_on_err "$1" $?
 	cat .cmd_err
 	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && stop_on_cmd_err "$1"
@@ -46,13 +50,15 @@ do_cmd_true() {
 
 do_cmd_warn() {
 	local err=0
+	DATE=$(date +%T)
 	echo  ""
-	echo  "--- $1 --- (test $counter)"
+	echo  "--- $1 --- (test $counter) $DATE"
 	$1 2> .cmd_err || err=$?
 	cat .cmd_err
 	cmd_err="$(cat .cmd_err)"
 	grep -E "failed|error" .cmd_err > /dev/null 2>&1 && echo "--- $1 TEST WARN : $cmd_err"
-	if [[ $err -ne 0 ]]; then echo "--- $1 TEST WARN : returned status $err"; fi
+	DATE=$(date +%T)
+	if [[ $err -ne 0 ]]; then echo "--- $1 TEST WARN : returned status $err $DATE"; fi
 	rm -f .cmd_err
 	((counter++))
 }
@@ -60,7 +66,8 @@ do_cmd_warn() {
 test_reset_blocked_false() {
 	if [ -f /sys/class/scsi_tape/$1/position_lost_in_reset ]; then
 		p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
-		echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
+		DATE=$(date +%T)
+		echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1 $DATE"
 		[[ "$p1" != "0" ]] && stop_on_pos_err $p1
 	fi
 }
@@ -68,14 +75,16 @@ test_reset_blocked_false() {
 test_reset_blocked_true() {
 	if [ -f /sys/class/scsi_tape/$1/position_lost_in_reset ]; then
 		p1=$(cat /sys/class/scsi_tape/$1/position_lost_in_reset)
-		echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1"
+		DATE=$(date +%T)
+		echo  "/sys/class/scsi_tape/$1/position_lost_in_reset $p1 $DATE"
 		[[ "$p1" != "1" ]] && stop_on_pos_err $p1
 	fi
 }
 
 do_cmd_false() {
+	DATE=$(date +%T)
 	echo  ""
-	echo  "--- $1 --- (test $counter)"
+	echo  "--- $1 --- (test $counter) $DATE"
 	$1 2> .cmd_err && stop_on_err "$1" $?
 	cat .cmd_err
 	[ -s .cmd_err ] || stop_on_cmd_err "$1"

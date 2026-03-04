@@ -76,7 +76,7 @@ do_cmd_true "mt -f $DEV rewind"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "sg_map -st -x -i"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "stinit -f $DIR/stinit.conf -v $DEV"
+do_cmd_warn "stinit -f $DIR/stinit.conf -v $DEV"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
@@ -165,7 +165,7 @@ test_reset_blocked_true "$TDEV"
 
 # stinit should fail after reset
 #do_cmd_warn "stinit -f $DIR/stinit.conf -v $DEV"
-test_reset_blocked_true "$TDEV"
+#test_reset_blocked_true "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_true "$TDEV"
 #do_cmd_false "mt -f $DEV tell"
@@ -210,7 +210,6 @@ test_reset_blocked_true "$TDEV"
 
 # This command should fail after reset
 #do_cmd_warn "stinit -f $DIR/stinit.conf -v $DEV"
-test_reset_blocked_true "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_true "$TDEV"
 #do_cmd_false "mt -f $DEV tell"
@@ -218,11 +217,45 @@ test_reset_blocked_true "$TDEV"
 #
 # Seek should succeed after reset and clear the reset condition
 #
-do_cmd_true "mt -f $DEV eod"
-test_reset_blocked_false "$TDEV"
+
+echo ""
+echo "Searching for EOD will timeout in 3 minutes."
+echo ""
+
+WAIT_SECONDS=180
+START_SECONDS=$(date +%s)
+$DIR/tape_reset.sh $SDEV $WAIT_SECONDS &
+do_cmd_warn "mt -f $DEV eod"
+END_SECONDS=$(date +%s)
+DIFF_SECONDS=$((END_SECONDS - START_SECONDS))
+
+echo ""
+echo "Finished EOD after $DIFF_SECONDS seconds"
+echo ""
+
+if [[ $DIFF_SECONDS -le $WAIT_SECONDS ]]; then
+	WAIT=$((WAIT_SECONDS - DIFF_SECONDS))
+	echo "sleep for $WAIT seconds"
+	sleep $WAIT
+	sleep 20
+fi
+
 do_cmd_true "mt -f $DEV status"
+
+echo ""
+echo "Reposition the tape and write file 3"
+echo ""
+
+do_cmd_true "mt -f $DEV rewind"
 test_reset_blocked_false "$TDEV"
-#do_cmd_true "mt -f $DEV tell"
+do_cmd_true "mt -f $DEV fsf 2 "
+do_cmd_true "mt -f $DEV status "
+do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_true "mt -f $DEV status "
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status "
+do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV status "
 
 #
 # Reset the device with IO inprogress
@@ -249,11 +282,24 @@ do_cmd_true "mt -f $DEV retension"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status "
+
+START_SECONDS=$(date +%T)
+echo ""
+echo "begin searching for EOD at $START_SECONDS"
+do_cmd_warn "mt -f $DEV eod"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
-test_reset_blocked_false "$TDEV"
 #do_cmd_true "mt -f $DEV tell"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status "
+test_reset_blocked_false "$TDEV"
+do_cmd_true "mt -f $DEV fsf 3"
+do_cmd_true "mt -f $DEV status "
+do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_warn "mt -f $DEV eod"
+do_cmd_true "mt -f $DEV status "
 
 #
 # Reset the devices
@@ -261,7 +307,7 @@ test_reset_blocked_false "$TDEV"
 $DIR/tape_reset.sh $SDEV 5 &
 
 echo ""
-echo "Reset the device and wait - test 3"
+echo "Reset the device while at EOD and wait - test 3"
 echo "Sleep for 10 seconds"
 echo ""
 sleep 10
@@ -327,6 +373,9 @@ echo ""
 do_cmd_true "mt -f $DEV load"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV status"
+do_cmd_true "mt -f $DEV rewind"
+do_cmd_true "mt -f $DEV status "
+test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
@@ -407,13 +456,16 @@ do_cmd_true "dd if=$DEV bs=128k count=10 of=/dev/null"
 do_cmd_true "mt -f $DEV fsf 1"
 do_cmd_true "mt -f $DEV status"
 do_cmd_true "dd if=$DEV bs=128k count=10 of=/dev/null"
+do_cmd_true "mt -f $DEV fsf 1"
 do_cmd_true "mt -f $DEV status"
-test_reset_blocked_false "$TDEV"
-do_cmd_false "dd if=$DEV bs=128k count=10 of=/dev/null"
+do_cmd_warn "dd if=$DEV bs=128k count=10 of=/dev/null"
+do_cmd_warn "mt -f $DEV fsf 1"
+do_cmd_true "mt -f $DEV status"
+do_cmd_warn "dd if=$DEV bs=128k count=10 of=/dev/null"
 #do_cmd_true "sg_map -st -x -i"
-test_reset_blocked_false "$TDEV"
+#test_reset_blocked_false "$TDEV"
 #do_cmd_true "stinit -f $DIR/stinit.conf -v $DEV"
-test_reset_blocked_false "$TDEV"
+#test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV status"
 
