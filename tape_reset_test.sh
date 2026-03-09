@@ -51,7 +51,7 @@ if [[ ! -f tape_test_file.img ]]; then
 	echo ""
 	echo "Create a 1GB files for use with the tape test"
 	echo ""
-	dd if=/dev/urandom of=tape_test_file.img bs=1G count=1 status=progress iflag=fullblock
+	dd if=/dev/urandom of=tape_test_file.img bs=1G count=1 iflag=fullblock
 fi
 
 cleanup() {
@@ -91,9 +91,9 @@ do_cmd_true "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV $STSHOWOPT"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_false "$TDEV"
-do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 #do_cmd_true "mt -f $DEV tell"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV rewind "
@@ -140,7 +140,7 @@ check_dmesg
 #
 do_cmd_warn "mt -f $DEV stsetoptions no-blklimits"
 test_reset_blocked_true "$TDEV"
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 #do_cmd_false "mt -f $DEV tell"
 do_cmd_false "mt -f $DEV weof 1 "
@@ -149,7 +149,7 @@ do_cmd_false "mt -f $DEV wset 1"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=$DEV bs=128k count=10 of=/dev/null"
 test_reset_blocked_true "$TDEV"
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 #do_cmd_false "mt -f $DEV tell"
 
@@ -198,7 +198,7 @@ echo ""
 #
 # This command should fail
 #
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 
@@ -250,7 +250,7 @@ do_cmd_true "mt -f $DEV rewind"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV fsf 2 "
 do_cmd_true "mt -f $DEV status "
-do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 do_cmd_true "mt -f $DEV status "
 do_cmd_true "mt -f $DEV rewind"
 do_cmd_true "mt -f $DEV status "
@@ -269,7 +269,7 @@ echo ""
 #
 # This command should fail
 #
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 
@@ -297,7 +297,7 @@ do_cmd_true "mt -f $DEV status "
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV fsf 3"
 do_cmd_true "mt -f $DEV status "
-do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_true "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 do_cmd_warn "mt -f $DEV eod"
 do_cmd_true "mt -f $DEV status "
 
@@ -315,7 +315,7 @@ sleep 10
 #
 # This command should fail
 #
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 
@@ -359,7 +359,7 @@ test_reset_blocked_true "$TDEV"
 do_cmd_false "mt -f $DEV eod"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=$DEV bs=128k count=10 of=/dev/null"
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 
 #
@@ -394,13 +394,13 @@ sleep 3
 #
 # These commands should fail
 #
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 do_cmd_false "mt -f $DEV weof 1"
 do_cmd_false "mt -f $DEV wset 1"
 do_cmd_false "dd if=$DEV count=10 of=/dev/null"
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 
 #
@@ -431,14 +431,14 @@ sleep 3
 #
 # These commands should fail
 #
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 do_cmd_false "mt -f $DEV weof 1"
 do_cmd_false "mt -f $DEV wset 1"
 test_reset_blocked_true "$TDEV"
 do_cmd_false "dd if=$DEV bs=128k count=10 of=/dev/null"
-do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV status=progress iflag=fullblock"
+do_cmd_false "dd if=tape_test_file.img obs=128k of=$DEV iflag=fullblock"
 test_reset_blocked_true "$TDEV"
 
 #

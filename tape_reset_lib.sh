@@ -251,6 +251,7 @@ check_dmesg() {
 clear_dmesg() {
 	if [ "$DMESG" -gt 0 ]; then
 		ps x | grep "dmesg" | grep "Tw" | awk '{print $1}' | xargs kill -9  > /dev/null 2>&1
+		rm -f .cmd_err
 	fi
 }
 
