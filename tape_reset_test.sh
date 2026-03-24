@@ -131,7 +131,7 @@ echo ""
 sleep 10
 
 do_cmd_true "mt -f $DEV status"
-#do_cmd_warn "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
 check_dmesg
 
@@ -160,7 +160,7 @@ test_reset_blocked_true "$TDEV"
 #
 
 do_cmd_true "mt -f $DEV status"
-#do_cmd_warn "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
 
 # stinit should fail after reset
@@ -183,7 +183,7 @@ do_cmd_true "mt -f $DEV status"
 test_reset_blocked_false "$TDEV"
 do_cmd_true "mt -f $DEV $STSHOWOPT"
 test_reset_blocked_false "$TDEV"
-#do_cmd_true "sg_map -st -x -i"
+do_cmd_true "sg_map -st -x -i"
 test_reset_blocked_false "$TDEV"
 
 #
@@ -205,7 +205,7 @@ check_dmesg
 # This command now succeeds
 
 do_cmd_true "mt -f $DEV status"
-#do_cmd_warn "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
 
 # This command should fail after reset
@@ -408,7 +408,7 @@ test_reset_blocked_true "$TDEV"
 #
 
 do_cmd_true "mt -f $DEV status"
-#do_cmd_warn "sg_map -st -x -i"
+do_cmd_warn "sg_map -st -x -i"
 test_reset_blocked_true "$TDEV"
 #do_cmd_warn "stinit -f $DIR/stinit.conf -v $DEV"
 do_cmd_true "mt -f $DEV status"
@@ -462,7 +462,7 @@ do_cmd_warn "dd if=$DEV bs=128k count=10 of=/dev/null"
 do_cmd_warn "mt -f $DEV fsf 1"
 do_cmd_true "mt -f $DEV status"
 do_cmd_warn "dd if=$DEV bs=128k count=10 of=/dev/null"
-#do_cmd_true "sg_map -st -x -i"
+do_cmd_true "sg_map -st -x -i"
 #test_reset_blocked_false "$TDEV"
 #do_cmd_true "stinit -f $DIR/stinit.conf -v $DEV"
 #test_reset_blocked_false "$TDEV"
