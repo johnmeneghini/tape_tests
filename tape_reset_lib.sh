@@ -254,7 +254,3 @@ clear_dmesg() {
 		rm -f .cmd_err
 	fi
 }
-
-set_options() {
-	mt -f $1 stshowoptions && STSHOWOPT=stshowoptions || STSHOWOPT=stshowopt
-}
