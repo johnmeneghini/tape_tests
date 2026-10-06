@@ -13,9 +13,9 @@
 # This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive.
 #
 
-# this utility assumes the tape_reset_lib.sh libary is in the same directory
+# this utility assumes the tape_reset_lib.sh libary is in the lib subdirectory
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. $DIR/tape_reset_lib.sh
+. $DIR/lib/tape_reset_lib.sh
 
 check_root
 
@@ -122,7 +122,7 @@ echo ""
 #
 # Reset the device and wait
 #
-$DIR/tape_reset.sh $SDEV 5 &
+$DIR/lib/tape_reset.sh $SDEV 5 &
 
 echo ""
 echo "Reset the device and wait - test 0"
@@ -189,7 +189,7 @@ test_reset_blocked_false "$TDEV"
 #
 # Reset the device with IO in progress
 #
-$DIR/tape_reset.sh $SDEV 5 &
+$DIR/lib/tape_reset.sh $SDEV 5 &
 
 echo ""
 echo "Reset the device with IO in progess - test 1"
@@ -224,7 +224,7 @@ echo ""
 
 WAIT_SECONDS=180
 START_SECONDS=$(date +%s)
-$DIR/tape_reset.sh $SDEV $WAIT_SECONDS &
+$DIR/lib/tape_reset.sh $SDEV $WAIT_SECONDS &
 do_cmd_warn "mt -f $DEV eod"
 END_SECONDS=$(date +%s)
 DIFF_SECONDS=$((END_SECONDS - START_SECONDS))
@@ -260,7 +260,7 @@ do_cmd_true "mt -f $DEV status "
 #
 # Reset the device with IO inprogress
 #
-$DIR/tape_reset.sh $SDEV 5 &
+$DIR/lib/tape_reset.sh $SDEV 5 &
 
 echo ""
 echo "Reset the device with IO in progess - test 2"
@@ -304,7 +304,7 @@ do_cmd_true "mt -f $DEV status "
 #
 # Reset the devices
 #
-$DIR/tape_reset.sh $SDEV 5 &
+$DIR/lib/tape_reset.sh $SDEV 5 &
 
 echo ""
 echo "Reset the device while at EOD and wait - test 3"
@@ -335,7 +335,7 @@ test_reset_blocked_false "$TDEV"
 #
 # Reset the device with no tape
 #
-$DIR/tape_reset.sh $SDEV 1 &
+$DIR/lib/tape_reset.sh $SDEV 1 &
 
 echo ""
 echo "Reset the device with no tape - test 4"
@@ -383,7 +383,7 @@ test_reset_blocked_false "$TDEV"
 #
 # Reset the device with tape at EOD
 #
-$DIR/tape_reset.sh $SDEV 1 &
+$DIR/lib/tape_reset.sh $SDEV 1 &
 
 echo ""
 echo "Reset the device with the tape at EOD - test 5"
@@ -420,7 +420,7 @@ do_cmd_true "mt -f $DEV status"
 #
 # Reset the device while at BOT
 #
-$DIR/tape_reset.sh $SDEV 1 &
+$DIR/lib/tape_reset.sh $SDEV 1 &
 
 echo ""
 echo "Reset the device with the tape at BOT - test 6"

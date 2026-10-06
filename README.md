@@ -11,10 +11,10 @@ of this writing the following scripts are included:
 
 Other files:
 
- run_tests.sh      - calls either `tape_reset_test.sh` or `tape_reset_test_debug.sh`
- tape_reset_lib.sh - libraray used  by tests
- tape_reset.sh     - reset function called by other tests
- stinit.conf       - initialization file used by tests
+ run_tests.sh          - calls either `tape_reset_test.sh` or `tape_reset_test_debug.sh`
+ lib/tape_reset_lib.sh - libraray used  by tests
+ lib/tape_reset.sh     - reset function called by other tests
+ stinit.conf           - initialization file used by tests
 
 NOTE: The scripts used in this repository are all designed to be run from a
 root account. It is not advised to run these scripts on a production machine

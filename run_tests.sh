@@ -9,9 +9,9 @@
 # This test was developed with a QUANTUM ULTRIUM 4 U53F tape drive.
 #
 
-# this utility assumes the tape_reset_lib.sh libary is in the same directory
+# this utility assumes the tape_reset_lib.sh libary is in the lib subdirectory
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. $DIR/tape_reset_lib.sh
+. $DIR/lib/tape_reset_lib.sh
 
 check_root
 

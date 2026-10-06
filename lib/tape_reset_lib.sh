@@ -5,7 +5,8 @@
 # Must be run as root
 #
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# directory this library lives in; callers keep their own $DIR (the top level)
+LIBDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 counter=1
 
@@ -98,8 +99,8 @@ check_root() {
 		exit 1
 	fi
 
-	if [ ! -f $DIR/tape_reset.sh ]; then
-		echo "  Error: $DIR/tape_reset.sh is missing"
+	if [ ! -f $LIBDIR/tape_reset.sh ]; then
+		echo "  Error: $LIBDIR/tape_reset.sh is missing"
 		exit 1
 	fi
 
