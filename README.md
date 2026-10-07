@@ -3,8 +3,14 @@
 This repository contains scripts and instructions to assit in the testing of
 the Linux st tape driver. Set up and deployment of these tests require a Fedora
 or Centos-stream-9/10 linux platform with a physical tape drive. If a physical
-tape drive is not available the scsi_debug tape emulator can be used. The time
-of this writing the following scripts are included:
+tape drive is not available the scsi_debug tape emulator can be used. 
+
+## Author
+John Meneghini  <jmeneghi@redhat.com>
+
+## Tests
+
+The following scripts are included:
 
 1. tape_reset_test_debug.sh - test using scsi_debug: no hardware required
 2. tape_reset_test.sh       - test using a tape drive: hardware required
@@ -140,3 +146,47 @@ Example run:
 sudo ./tape_reset_test_debug.sh /dev/nst1 /dev/sg3 0 0 1 6 2>&1 | tee -a tape_reset_test_debug.log
 
 ```
+### tapetests.sh
+
+The `tapetests.sh` utility was built leveraging the above tests written by
+Laurence Oberman <loberman@redhat.com> with the assistance of Claude
+(Anthropic) 
+
+The `tapetests.sh` utility is a validation harness for the Linux SCSI tape
+driver (`st`): I/O, positioning, and above all device reset and SCSI error
+handling, with byte-exact readback of the whole tape after every test.
+
+```bash
+./tapetest.sh --scsi-debug=2                         # emulated tape, no hardware
+./tapetest.sh -d /dev/nst0 --yes -s basic            # real drive (destroys tape data)
+./tapetest.sh -d /dev/nst0 --yes -s reset,boundary   # real drive, reset handling
+./tapetest.sh -d /dev/nst0 --list                    # what would run here, and why not
+./selftest.sh                                     # prove the harness catches regressions
+
+# everything for a kernel release, one report and one verdict
+./release-check.sh -d /dev/nst0 --yes --library --compare release/<previous>
+```
+
+Requires root, bash, python3 >= 3.6 and sg3_utils.  Hardware and scsi_debug
+runs reload st with `debug_flag=1`, apply `stinit.conf` and enforce the
+`scsi2logical` option before testing.
+
+* [User manual](docs/MANUAL.md) - setup, safety, running, results, catalogue,
+  troubleshooting, extending
+* [st contract](docs/st-contract.md) - what is asserted and where in st.c it
+  comes from
+* [st reset findings](docs/st-reset-findings.md) - analysis of the known
+  warnings: mechanism in st.c, impact, possible fixes
+* [st patches](patches/README.md) - fixes for the findings, posted to
+  linux-scsi, with test results
+* [Reference results](docs/results/README.md) - scsi_debug and IBM LTO
+  baselines
+* [Changes](CHANGELOG.md)
+
+**All data on the tape under test is destroyed.**  Read the safety section
+of the manual before running on a drive in a library or behind a shared HBA.
+
+Exit status: 0 all selected tests passed or skipped, 1 failures, 2 harness
+error.
+
+License: GPL-2.0 (see LICENSES).
