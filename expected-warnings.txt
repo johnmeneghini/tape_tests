@@ -1,0 +1,13 @@
+# Warnings that reflect known, documented st behaviour (docs/MANUAL.md,
+# section 9).  release-check lists them as "expected"; any other warning makes
+# the verdict REVIEW.  When st changes and a line stops matching, the report
+# says so - update this file deliberately, never to silence a new warning.
+#
+# format: <test-id glob><TAB><extended regex matched against the warning text>
+R04.retension	MTSETBLK [0-9]+ silently discarded
+R04.offline	MTSETBLK [0-9]+ silently discarded
+R04.load	MTSETBLK [0-9]+ silently discarded
+R03.load	reports -1:-1 although the tape is at BOT
+B09	read after MTLOAD at EOD fails with EIO
+R15.*	the drive buffered mode is [0-9], not the [0-9] set with MTSETDRVBUFFER
+R16	st did not lock the door again after the reset
