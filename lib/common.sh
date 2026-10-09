@@ -28,6 +28,8 @@ pass()       { printf '%s    ok      %s\n' "$(ts)" "$*"; echo "$*" >> "$TT_TDIR/
 fail()       { printf '%s    FAIL    %s\n' "$(ts)" "$*"; echo "$*" >> "$TT_TDIR/fail"; }
 warn()       { printf '%s    WARN    %s\n' "$(ts)" "$*"; echo "$*" >> "$TT_TDIR/warn"; }
 note()       { printf '%s    NOTE    %s\n' "$(ts)" "$*"; echo "$*" >> "$TT_TDIR/note"; }
+# behaviour of the HBA / low-level driver rather than st (own summary section)
+hba_finding() { printf '%s    HBA     %s\n' "$(ts)" "$*"; echo "$*" >> "$TT_TDIR/hba"; }
 unverified() { printf '%s    UNVERIFIED %s\n' "$(ts)" "$*"; echo "$*" >> "$TT_TDIR/unverified"; }
 skip_test()  { printf '%s    SKIP    %s\n' "$(ts)" "$*"; echo "$*" > "$TT_TDIR/skip"; exit 77; }
 # A condition that makes the rest of the test meaningless.
