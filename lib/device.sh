@@ -86,6 +86,9 @@ tt_preflight_tools() {
 	[[ $EUID -eq 0 ]] || die "must be run as root"
 	command -v sg_reset >/dev/null ||
 		die "sg_reset not found (install sg3_utils) - packages are not installed automatically"
+	# --no-esc keeps a refused LU/target reset from escalating to a host reset
+	sg_reset --help 2>&1 | grep -q -- '--no-esc' ||
+		die "sg_reset does not support --no-esc (sg3_utils too old): resets could escalate to the whole HBA"
 	command -v lsscsi >/dev/null || log "note: lsscsi not installed (optional)"
 }
 
