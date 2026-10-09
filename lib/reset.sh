@@ -26,24 +26,53 @@ sas_phy_of() {
 	done
 }
 
-# do_reset <method> [sg]   -- issue a reset, fail the test if it can't be sent
+# Name of the low-level driver of the device's host, for messages.
+tt_lld_name() {
+	cat "/sys/class/scsi_host/host${HCTL%%:*}/proc_name" 2>/dev/null || echo "this HBA"
+}
+
+# A reset method the HBA refused once is not tried again in this run: a
+# refused target reset can take minutes and stalls the device's IO meanwhile.
+reset_unsupported() {	# method -> 0 if known to be refused here
+	grep -qx "$1" "$TT_RUN/reset-unsupported" 2>/dev/null
+}
+reset_require() {	# method: skip the test if the HBA refused it earlier
+	reset_unsupported "$1" &&
+		skip_test "$1 reset is not supported by $(tt_lld_name) (refused earlier in this run)"
+	return 0
+}
+
+# do_reset <method> [sg]   -- issue a reset.  sg_reset runs with --no-esc:
+# without it the kernel escalates a refused device or target reset to a bus
+# and then a host reset, which hits every device on the HBA - exactly what
+# --allow-bus-reset / --allow-host-reset are there to prevent.
+# A reset the HBA refuses makes the test SKIP (not FAIL): it says nothing
+# about st.  Inside inflight_reset (_RESET_DEFER=1) it returns 2 instead, so
+# the caller can reap the background IO first.
 do_reset() {
 	local m=$1 sg=${2:-$SG} rc out
+	reset_require "$m"
 	if [[ $TT_MODE == mock ]]; then
 		out=$(python3 "$TAPECTL" mock-reset "$sg" --scope "$m" 2>&1); rc=$?
 	else
 		case "$m" in
-		lu)     out=$(sg_reset --device "$sg" 2>&1); rc=$? ;;
-		target) out=$(sg_reset --target "$sg" 2>&1); rc=$? ;;
-		bus)    out=$(sg_reset --bus "$sg" 2>&1); rc=$? ;;
+		lu)     out=$(sg_reset --no-esc --device "$sg" 2>&1); rc=$? ;;
+		target) out=$(sg_reset --no-esc --target "$sg" 2>&1); rc=$? ;;
+		bus)    out=$(sg_reset --no-esc --bus "$sg" 2>&1); rc=$? ;;
 		host)   out=$(sg_reset --host "$sg" 2>&1); rc=$? ;;
 		link)   out=$( { echo 1 > "$(sas_phy_of "$DEV")/link_reset"; } 2>&1); rc=$? ;;
 		*)      die "unknown reset method $m" ;;
 		esac
 	fi
 	if [[ $rc -ne 0 ]]; then
-		fail "$m reset via $sg could not be issued (rc=$rc): $out"
-		return 1
+		if [[ $m == link || $TT_MODE == mock ]]; then
+			fail "$m reset via $sg could not be issued (rc=$rc): $out"
+			return 1
+		fi
+		echo "$m" >> "$TT_RUN/reset-unsupported"
+		hba_finding "$m reset via $sg refused by $(tt_lld_name) (rc=$rc): $out; affected tests are skipped, this is not an st result"
+		[[ ${_RESET_DEFER:-0} -eq 1 ]] && return 2
+		skip_test "$m reset is not supported by $(tt_lld_name)"
 	fi
 	log "    >>> $m reset issued via $sg"
 	[[ $TT_SETTLE -gt 0 ]] && sleep "$TT_SETTLE"
@@ -106,7 +135,8 @@ inflight_reset() {
 	local prog=$TT_TDIR/progress.$RANDOM
 	local args=("$@")
 	# fire the reset a quarter of the way into the transfer (INFLIGHT_AT overrides)
-	local at=${INFLIGHT_AT:-$((TT_INFLIGHT_BYTES / 4))}
+	local at=${INFLIGHT_AT:-$((TT_INFLIGHT_BYTES / 4))} rrc
+	reset_require "$m"
 	[[ $at -lt $TT_BS ]] && at=$TT_BS
 	[[ $kind != op ]] && args+=(--progress "$prog" --progress-bytes "$at")
 	INFLIGHT=0
@@ -123,9 +153,14 @@ inflight_reset() {
 	if kill -0 "$BG_PID" 2>/dev/null && [[ ! -e $prog.done ]]; then
 		INFLIGHT=1
 	fi
-	do_reset "$m"
+	_RESET_DEFER=1 do_reset "$m"; rrc=$?
 	tc_bg_wait
 	_bg_env_restore
+	if [[ $rrc -eq 2 ]]; then
+		# the IO ran on unhindered and is not in the layout model
+		layout_dirty "$m reset refused during a background $kind"
+		skip_test "$m reset is not supported by $(tt_lld_name)"
+	fi
 	# If the IO finished cleanly the reset missed it.
 	if [[ $kind != op && ${R[errno]} == 0 ]]; then INFLIGHT=0; fi
 	return 0

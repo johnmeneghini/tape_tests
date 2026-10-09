@@ -1,5 +1,22 @@
 # Changes
 
+## 2.23
+
+* Resets are issued with sg_reset --no-esc.  Without it the kernel
+  escalates a refused device or target reset to a bus and then a host
+  reset, hitting every device on the HBA without --allow-bus-reset /
+  --allow-host-reset.  Seen on smartpqi (HPE E208e-p), which refuses a
+  target reset: each attempt took minutes, stalled the tape's IO (hung
+  task warnings in st_write) and R05.target retried three times.
+* A reset the HBA refuses makes the test SKIP with the driver's name
+  instead of FAIL, and later tests using that method skip at once.  A
+  refusal during background IO reaps the IO first and marks the layout
+  for a rebuild.
+* Preflight requires an sg_reset that supports --no-esc.
+* New summary section "HBA / low-level driver findings": a refused
+  reset is reported there (HBA line in the log) with the driver's name,
+  separate from st failures, warnings and observations.
+
 ## 2.22
 
 * Hardware runs with can-partitions=0 that select a partition test

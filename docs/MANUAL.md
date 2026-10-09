@@ -303,6 +303,11 @@ Requirements: `any` runs everywhere; `long` needs `--long` on hardware;
 target; `partitions` needs scsi_debug or a drive with can-partitions;
 `bus`/`host`/`link` need the corresponding `--allow-*` option.
 
+Resets are sent with `sg_reset --no-esc`, so a device or target reset the
+HBA refuses is not escalated by the kernel to a bus or host reset.  A
+refused method makes its test SKIP, naming the driver (e.g. smartpqi does
+not do target resets), and later tests using it skip at once.
+
 Partition tests on hardware: can-partitions is normally 0 in stinit.conf,
 so X03-X05 would skip.  A hardware run that selects them with
 can-partitions=0 stops with a warning; type `skip` to go on without them

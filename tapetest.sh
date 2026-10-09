@@ -17,7 +17,7 @@ export TT_LIB
 # shellcheck source=lib/reset.sh
 . "$TT_LIB/reset.sh"
 
-TT_VERSION=2.22
+TT_VERSION=2.23
 
 declare -ga TT_IDS=()
 declare -gA TT_SUITE=() TT_REQ=() TT_DESC=()
@@ -170,6 +170,10 @@ unmet_req() {
 		*)       echo "unknown requirement '$r'"; return ;;
 		esac
 	done
+	# a reset method the HBA refused earlier in this run (see do_reset)
+	if [[ $1 == *.* ]] && reset_unsupported "${1#*.}"; then
+		echo "${1#*.} reset is not supported by $(tt_lld_name) (refused earlier in this run)"
+	fi
 }
 
 # ---------------------------------------------------------------------------
@@ -417,13 +421,14 @@ junit
 	while IFS='|' read -r id res dt np nf desc; do
 		printf '  %-5s %-12s %s\n' "$res" "$id" "$desc"
 	done < "$RESULTS"
-	for kind in fail warn unverified note; do
+	for kind in fail warn hba unverified note; do
 		files=$(ls "$TT_RUN"/tests/*/"$kind" 2>/dev/null)
 		[[ -z $files ]] && continue
 		echo
 		case $kind in
 		fail) echo "failures:" ;;
 		warn) echo "warnings (behaviour worth a look):" ;;
+		hba)  echo "HBA / low-level driver findings (exposed by the tests, not st behaviour):" ;;
 		unverified) echo "checks that could NOT be verified on this system:" ;;
 		note) echo "observations:" ;;
 		esac
