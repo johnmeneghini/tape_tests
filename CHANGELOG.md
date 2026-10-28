@@ -1,5 +1,43 @@
 # Changes
 
+## 2.25
+
+Four basic tests that close the remaining gaps against the legacy kernel-qe
+tape tests (storage/tape/mt-st, read_write_testing,
+error_handling_and_recovery), so tapetest covers every st operation they
+exercised:
+
+* B10: MTCOMPRESSION 1/0.  The drive's data compression page (0x0f, MODE
+  SENSE through sg) must follow (DCE), and a file written compressed must
+  read back with compression off.  A drive that cannot change compression
+  (no page, or DCC=0) must get EIO from st; the test then skips.  The
+  original setting is restored.
+* B11: MTLOCK/MTUNLOCK.  Lock and unlock succeed; with st debug_flag=1 the
+  st log proves PREVENT/ALLOW MEDIUM REMOVAL was sent and that the explicit
+  lock survived close() (st_release() only drops an automatic lock).  The
+  door is always unlocked again, also from the between-test cleanup.
+* B12: variable block size sweep 4k, 16k, 64k, 256k: exact readback with
+  every block the written size, a 4x larger read buffer returns one block
+  per read, a half-size buffer fails with ENOMEM and consumes the block
+  (block 1 afterwards, the next read returns block 1).
+* B13: a write and a read stopped with SIGSTOP for 3 s and continued with
+  SIGCONT complete with errno 0 and correct data (retried if the transfer
+  finished before the signal landed).
+* tapectl `modesense --page 0x0f` reports DCE/DCC/DDE.  The mock consumes an
+  oversized block on ENOMEM, as st does.
+
+## 2.24
+
+* New suite `hotplug` (in the default selection), test H01: the tape is
+  removed through sysfs and re-added with a scan of the same H:C:T:L, 50
+  times, while 4 processes open and close the no-rewind node.  Covers the
+  st_remove() / st_open() use-after-free reported on linux-scsi on
+  2026-10-07 (KASAN: slab-use-after-free in st_open): st_remove() dropped
+  the last reference before removing the index from st_index_idr.  Needs
+  `--scsi-debug`; meaningful on a KASAN (debug) kernel, otherwise the run
+  reports the check as UNVERIFIED.
+* New requirement keyword `sdebug`, new tapectl subcommand `openloop`.
+
 ## 2.23
 
 * Resets are issued with sg_reset --no-esc.  Without it the kernel

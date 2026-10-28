@@ -614,7 +614,7 @@ Useful helpers:
 
 Requirement keywords: `any hw long bus host link inject sdebug multilun partitions`.
 
-Before committing a change, run `shellcheck -x -e SC2034,SC2154 tapetest
+Before committing a change, run `shellcheck -x -e SC2034,SC2154 tapetest.sh
 lib/*.sh tests/*.sh` and `./selftest.sh`.
 
 ---
