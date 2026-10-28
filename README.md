@@ -1,6 +1,6 @@
 # Red Hat Tape Tests
 
-This repository contains scripts and instructions to assit in the testing of
+This repository contains scripts and instructions to assist in the testing of
 the Linux st tape driver. The deployment of these tests require a Fedora
 or Centos-stream-9/10 linux platform with a physical tape drive. If a physical
 tape drive is not available the scsi_debug tape emulator can be used.
@@ -25,12 +25,12 @@ Laurence Oberman <loberman@redhat.com>
 
 NOTE: The scripts and tests in this repository are all designed to be run from a
 root account. It is not advised to run these scripts on a production machine
-unless you know what you are doing. These scripts will modify destroy the data
+unless you know what you are doing. These scripts will destroy the data
 on your tape drive.
 
-## Tests - tapetests.sh
+## Tests - tapetest.sh
 
-The `tapetests.sh` utility is a validation harness for the Linux SCSI tape
+The `tapetest.sh` utility is a validation harness for the Linux SCSI tape
 driver (`st`). This utility runs a collection of I/O stress, tape positioning
 and error handling tests, with device resets. Each test does data validation
 with a byte-exact readback of the whole tape after every test.
@@ -48,7 +48,7 @@ Examples:
 ./release-check.sh -d /dev/nst0 --yes --library --compare release/<previous>
 ```
 
-The `tapetests.sh` utility must be run as root and requires: bash, python3 >=
+The `tapetest.sh` utility must be run as root and requires: bash, python3 >=
 3.6 and sg3_utils.  Hardware and scsi_debug runs reload st with `debug_flag=1`,
 apply `stinit.conf` and enforce the `scsi2logical` option before testing.
 

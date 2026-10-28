@@ -9,5 +9,6 @@ R04.offline	MTSETBLK [0-9]+ silently discarded
 R04.load	MTSETBLK [0-9]+ silently discarded
 R03.load	reports -1:-1 although the tape is at BOT
 B09	read after MTLOAD at EOD fails with EIO
+B09	after load MTIOCGET reports [0-9-]+:-1 although the tape is at BOT
 R15.*	the drive buffered mode is [0-9], not the [0-9] set with MTSETDRVBUFFER
 R16	st did not lock the door again after the reset
