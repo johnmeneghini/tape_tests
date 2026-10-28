@@ -462,6 +462,10 @@ class MockTape(object):
                         L["eof"] = "fm"
                     break
                 if not bs and e[1] > n:
+                    # st: ILI with a negative residual - the block is
+                    # consumed (drv_block += 1) and read() fails with ENOMEM
+                    L["p"] += 1
+                    L["eof"] = ""
                     raise OSError(errno.ENOMEM, "block larger than request")
                 with open(self._blk(L["p"]), "rb") as f:
                     blk = f.read()
@@ -867,14 +871,16 @@ def cmd_modesense(a):
     except OSError as ex:
         out(errno=ename(ex.errno))
         return 1
-    cdb = (ctypes.c_ubyte * 6)(0x1a, 0, 0, 0, 12, 0)
-    buf = (ctypes.c_ubyte * 12)()
+    page = a.page & 0x3f
+    alen = 12 if not page else 64
+    cdb = (ctypes.c_ubyte * 6)(0x1a, 0, page, 0, alen, 0)
+    buf = (ctypes.c_ubyte * alen)()
     sense = (ctypes.c_ubyte * 32)()
     # A pending unit attention (e.g. 2A/01 "mode parameters changed" after
     # a MODE SELECT through st) fails the first command: retry.
     for _ in range(4):
         h = SgIoHdr(interface_id=ord("S"), dxfer_direction=SG_DXFER_FROM_DEV,
-                    cmd_len=6, mx_sb_len=32, dxfer_len=12,
+                    cmd_len=6, mx_sb_len=32, dxfer_len=alen,
                     dxferp=ctypes.cast(buf, ctypes.c_void_p),
                     cmdp=ctypes.cast(cdb, ctypes.c_void_p),
                     sbp=ctypes.cast(sense, ctypes.c_void_p), timeout=60000)
@@ -891,6 +897,15 @@ def cmd_modesense(a):
         out(errno="EIO", status="0x%x" % h.status, sense_key="0x%x" % (sense[2] & 0xf),
             asc="0x%x" % sense[12], ascq="0x%x" % sense[13])
         return 1
+    if page == 0x0f:
+        # Data Compression mode page: byte 2 bit 7 DCE, bit 6 DCC
+        off = 4 + buf[3]
+        if off + 4 > alen or (buf[off] & 0x3f) != 0x0f:
+            out(errno="ENOENT", page="0x0f")
+            return 1
+        out(errno="0", page="0x0f", dce=(buf[off + 2] >> 7) & 1,
+            dcc=(buf[off + 2] >> 6) & 1, dde=(buf[off + 3] >> 7) & 1)
+        return 0
     out(errno="0", buffered_mode=(buf[2] >> 4) & 7, wr_prot=buf[2] >> 7,
         density="0x%x" % buf[4], blksize=(buf[9] << 16) | (buf[10] << 8) | buf[11])
     return 0
@@ -953,6 +968,34 @@ def cmd_hold(a):
     except OSError:
         pass
     out(errno="0")
+    return 0
+
+
+def cmd_openloop(a):
+    """Open and close a tape node as fast as possible until the stop file
+    appears: the open side of the st_remove() / st_open() race (H01).
+    Failures are expected while the device is gone and are only counted."""
+    counts = {}
+    n = 0
+    deadline = time.time() + a.max_seconds
+    touch(a.ready, "1")
+    while not os.path.exists(a.stop) and time.time() < deadline:
+        try:
+            fd = os.open(a.dev, os.O_RDONLY | os.O_NONBLOCK)
+        except OSError as ex:
+            k = ename(ex.errno)
+        else:
+            k = "0"
+            try:
+                os.close(fd)
+            except OSError as ex:
+                k = "close-" + ename(ex.errno)
+        counts[k] = counts.get(k, 0) + 1
+        n += 1
+    ok = counts.pop("0", 0)
+    out(errno="0", opens=n, ok=ok,
+        errs=",".join("%s:%d" % kv for kv in sorted(counts.items())),
+        timed_out=int(not os.path.exists(a.stop)))
     return 0
 
 
@@ -1074,6 +1117,8 @@ def main():
 
     p = sub.add_parser("modesense")
     p.add_argument("sg")
+    p.add_argument("--page", type=lambda x: int(x, 0), default=0,
+                   help="mode page (0x0f: data compression)")
 
     p = sub.add_parser("session")
     p.add_argument("dev")
@@ -1085,6 +1130,12 @@ def main():
     p.add_argument("seconds", type=float)
     p.add_argument("--ready")
     p.add_argument("--nonblock", action="store_true")
+
+    p = sub.add_parser("openloop")
+    p.add_argument("dev")
+    p.add_argument("--stop", required=True, help="stop when this file exists")
+    p.add_argument("--ready")
+    p.add_argument("--max-seconds", type=float, default=600)
 
     p = sub.add_parser("sysattr")
     p.add_argument("dev")
@@ -1113,7 +1164,8 @@ def main():
     fn = {"op": cmd_op, "status": cmd_status, "tell": cmd_tell,
           "write": cmd_write, "read": cmd_read, "hold": cmd_hold,
           "sysattr": cmd_sysattr, "gendata": cmd_gendata, "kmsg": cmd_kmsg,
-          "modesense": cmd_modesense, "session": cmd_session}
+          "modesense": cmd_modesense, "session": cmd_session,
+          "openloop": cmd_openloop}
     if a.cmd in fn:
         return fn[a.cmd](a)
     if a.cmd == "mock-init":

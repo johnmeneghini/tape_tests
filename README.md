@@ -1,33 +1,76 @@
 # Red Hat Tape Tests
 
 This repository contains scripts and instructions to assit in the testing of
-the Linux st tape driver. Set up and deployment of these tests require a Fedora
+the Linux st tape driver. The deployment of these tests require a Fedora
 or Centos-stream-9/10 linux platform with a physical tape drive. If a physical
-tape drive is not available the scsi_debug tape emulator can be used. 
+tape drive is not available the scsi_debug tape emulator can be used.
 
-## Author
+## Authors
 John Meneghini  <jmeneghi@redhat.com>
+Laurence Oberman <loberman@redhat.com>
 
-## Tests
+## Documentation
 
-The following scripts are included:
+* [User manual](docs/MANUAL.md) - setup, safety, running, results, catalogue,
+  troubleshooting, extending
+* [st contract](docs/st-contract.md) - what is asserted and where in st.c it
+  comes from
+* [st reset findings](docs/st-reset-findings.md) - analysis of the known
+  warnings: mechanism in st.c, impact, possible fixes
+* [st patches](patches/README.md) - fixes for the findings, posted to
+  linux-scsi, with test results
+* [Reference results](docs/results/README.md) - scsi_debug and IBM LTO
+  baselines
+* [Changes](CHANGELOG.md)
 
-1. tape_reset_test_debug.sh - test using scsi_debug: no hardware required
-2. tape_reset_test.sh       - test using a tape drive: hardware required
-
-Other files:
-
- run_tests.sh          - calls either `tape_reset_test.sh` or `tape_reset_test_debug.sh`
- lib/tape_reset_lib.sh - libraray used  by tests
- lib/tape_reset.sh     - reset function called by other tests
- stinit.conf           - initialization file used by tests
-
-NOTE: The scripts used in this repository are all designed to be run from a
+NOTE: The scripts and tests in this repository are all designed to be run from a
 root account. It is not advised to run these scripts on a production machine
 unless you know what you are doing. These scripts will modify destroy the data
 on your tape drive.
 
-## Quick start
+## Tests - tapetests.sh
+
+The `tapetests.sh` utility is a validation harness for the Linux SCSI tape
+driver (`st`). This utility runs a collection of I/O stress, tape positioning
+and error handling tests, with device resets. Each test does data validation
+with a byte-exact readback of the whole tape after every test.
+
+Examples:
+
+```bash
+./tapetest.sh --scsi-debug=2                         # emulated tape, no hardware
+./tapetest.sh -d /dev/nst0 --yes -s basic            # real drive (destroys tape data)
+./tapetest.sh -d /dev/nst0 --yes -s reset,boundary   # real drive, reset handling
+./tapetest.sh -d /dev/nst0 --list                    # what would run here, and why not
+./selftest.sh                                     # prove the harness catches regressions
+
+# everything for a kernel release, one report and one verdict
+./release-check.sh -d /dev/nst0 --yes --library --compare release/<previous>
+```
+
+The `tapetests.sh` utility must be run as root and requires: bash, python3 >=
+3.6 and sg3_utils.  Hardware and scsi_debug runs reload st with `debug_flag=1`,
+apply `stinit.conf` and enforce the `scsi2logical` option before testing.
+
+**All data on the tape under test is destroyed.**  Read the safety section
+of the manual before running on a drive in a library or behind a shared HBA.
+
+Exit status: 0 all selected tests passed or skipped, 1 failures, 2 harness
+error.
+
+## Legacy Tests
+
+The following legacy test scripts are included in this repository:
+
+1. tape_reset_test_debug.sh - a stand-alone scsi_debug test: no hardware required
+2. tape_reset_test.sh  - a stand-alone tape drive test: hardware required
+3. run_tests.sh - calls either `tape_reset_test.sh` or `tape_reset_test_debug.sh`
+
+NOTE: These tests are no longer under development and are included only to
+suppport legacy applications that may still be using this repository for
+running these legacy tests.
+
+### Quick start
 
 Example:
 
@@ -40,7 +83,7 @@ Example:
   sudo ./tape_reset_test_debug.sh /dev/nst1 /dev/sg3 0 0 0 6 1 2>&1 | tee -a tape_reset_test_debug.log
 ```
 
-## Help
+### Help
 
 The `run_tests.sh` script determines whether to run `tape_reset_test.sh` or
 `tape_reset_test_degug.sh` based upon the `st_device` and `sg_device`
@@ -51,7 +94,7 @@ To run your test against a scsi_debug driver simply provide the `/dev/nst` and
 
   `modprobe scsi_debug ptype=1 dev_size_mb=10000`
 
-### run_tests.sh
+#### run_tests.sh
 
 ```
 # ./run_tests.sh
@@ -78,7 +121,7 @@ To run your test against a scsi_debug driver simply provide the `/dev/nst` and
 [8:0:0:0]    tape    Linux    scsi_debug       0191  /dev/st1   -  /dev/sg3
 ```
 
-### tape_reset_test.sh
+#### tape_reset_test.sh
 
 ```
 # ./tape_reset_test.sh
@@ -111,7 +154,7 @@ Example run:
 sudo ./tape_reset_test.sh /dev/nst0 /dev/sg2 0 2 1  2>&1 | tee -a tape_reset_test.log
 ```
 
-### tape_reset_test_debug.sh
+#### tape_reset_test_debug.sh
 
 Tape debug tests require no tape drive.
 
@@ -146,47 +189,4 @@ Example run:
 sudo ./tape_reset_test_debug.sh /dev/nst1 /dev/sg3 0 0 1 6 2>&1 | tee -a tape_reset_test_debug.log
 
 ```
-### tapetests.sh
-
-The `tapetests.sh` utility was built leveraging the above tests written by
-Laurence Oberman <loberman@redhat.com> with the assistance of Claude
-(Anthropic) 
-
-The `tapetests.sh` utility is a validation harness for the Linux SCSI tape
-driver (`st`): I/O, positioning, and above all device reset and SCSI error
-handling, with byte-exact readback of the whole tape after every test.
-
-```bash
-./tapetest.sh --scsi-debug=2                         # emulated tape, no hardware
-./tapetest.sh -d /dev/nst0 --yes -s basic            # real drive (destroys tape data)
-./tapetest.sh -d /dev/nst0 --yes -s reset,boundary   # real drive, reset handling
-./tapetest.sh -d /dev/nst0 --list                    # what would run here, and why not
-./selftest.sh                                     # prove the harness catches regressions
-
-# everything for a kernel release, one report and one verdict
-./release-check.sh -d /dev/nst0 --yes --library --compare release/<previous>
-```
-
-Requires root, bash, python3 >= 3.6 and sg3_utils.  Hardware and scsi_debug
-runs reload st with `debug_flag=1`, apply `stinit.conf` and enforce the
-`scsi2logical` option before testing.
-
-* [User manual](docs/MANUAL.md) - setup, safety, running, results, catalogue,
-  troubleshooting, extending
-* [st contract](docs/st-contract.md) - what is asserted and where in st.c it
-  comes from
-* [st reset findings](docs/st-reset-findings.md) - analysis of the known
-  warnings: mechanism in st.c, impact, possible fixes
-* [st patches](patches/README.md) - fixes for the findings, posted to
-  linux-scsi, with test results
-* [Reference results](docs/results/README.md) - scsi_debug and IBM LTO
-  baselines
-* [Changes](CHANGELOG.md)
-
-**All data on the tape under test is destroyed.**  Read the safety section
-of the manual before running on a drive in a library or behind a shared HBA.
-
-Exit status: 0 all selected tests passed or skipped, 1 failures, 2 harness
-error.
-
 License: GPL-2.0 (see LICENSES).

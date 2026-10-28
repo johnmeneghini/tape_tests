@@ -42,12 +42,15 @@ after st has sent a command that saw the unit attention (R06).
 | `close()` after writing skips the filemark when the position is lost, and fails | `st_flush()` | R05, R07, E02-E04 |
 | `close()` after -ENOSPC still writes the filemark | `st_flush()` | X01 |
 | The rewind node rewinds on close | `st_release()` | B05 |
+| An explicit MTLOCK survives close; only an automatic (auto-lock) lock is released by `st_release()` | `do_door_lock()`, `st_release()` | B11, R16 |
 
 ## End of data and blank check
 
 | Behaviour | st.c | Tests |
 |---|---|---|
 | A blank check directly after a filemark returns 0 (EOD_2); anywhere else EIO | `read_tape()` | X02, layout verification |
+| Variable mode: a block larger than the read request fails with ENOMEM ("Failed to read N byte block with M byte transfer"), the block is consumed | `read_tape()` | B12 |
+| MTCOMPRESSION changes DCE in mode page 0x0f; EIO if the page is missing or DCC=0 | `st_compression()` | B10 |
 | After MTEOM the first read fails with EIO | `st_read()` (`eof >= ST_EOD_1`) | X02 |
 | Writing at end of medium fails with ENOSPC and reports EOT in MTIOCGET | `st_write()`, `st_ioctl()` | X01 |
 
@@ -65,6 +68,7 @@ after st has sent a command that saw the unit attention (R06).
 | A second opener gets EBUSY | `st_open()` | B06 |
 | A blocking open of a drive that is not ready waits up to `ST_BLOCK_SECONDS` in `test_ready()`, then fails | `st_open()`, `check_tape()`, `test_ready()` | (harness uses O_NONBLOCK for ioctls) |
 | Mode defaults are applied only when a new session starts, not on every open | `check_tape()` | B04, R04 |
+| `st_remove()` unpublishes the tape from `st_index_idr` before dropping its last reference, so an open racing with removal either holds a valid reference or fails with ENXIO - never takes a reference on freed memory | `st_remove()`, `scsi_tape_get()` | H01 |
 
 ## Timeouts
 

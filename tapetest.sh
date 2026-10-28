@@ -17,7 +17,7 @@ export TT_LIB
 # shellcheck source=lib/reset.sh
 . "$TT_LIB/reset.sh"
 
-TT_VERSION=2.23
+TT_VERSION=2.25
 
 declare -ga TT_IDS=()
 declare -gA TT_SUITE=() TT_REQ=() TT_DESC=()
@@ -38,8 +38,8 @@ mode (one of):
       --mock[=N]          no kernel involvement: self-test of the harness itself
 
 selection:
-  -s, --suite LIST        comma list of suites: basic,reset,eh,boundary,stress
-                          (default: basic,reset,eh,boundary)
+  -s, --suite LIST        comma list of suites: basic,reset,eh,boundary,hotplug,stress
+                          (default: basic,reset,eh,boundary,hotplug)
   -t, --test LIST         comma list of test ids or globs (e.g. R03.*,R05.lu)
   -x, --exclude LIST      exclude test ids or globs
   -l, --list              list tests and whether they would run, then exit
@@ -80,7 +80,7 @@ EOF
 
 # ---------------------------------------------------------------------------
 TT_MODE=""; TT_DEVARG=""; TT_LUNS=2
-SUITES="basic,reset,eh,boundary"; TESTS=""; EXCLUDE=""; LIST=0; YES=0; SKIP_PART=0
+SUITES="basic,reset,eh,boundary,hotplug"; TESTS=""; EXCLUDE=""; LIST=0; YES=0; SKIP_PART=0
 STOP=0; STDEBUG=0; OUTDIR=""
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -162,6 +162,8 @@ unmet_req() {
 		host)    [[ ${TT_ALLOW_HOST:-0} -eq 1 ]] || { echo "needs --allow-host-reset"; return; } ;;
 		link)    [[ ${TT_ALLOW_LINK:-0} -eq 1 ]] || { echo "needs --allow-link-reset"; return; }
 			 [[ -n $(sas_phy_of "$DEV") ]] || { echo "device is not behind a SAS phy"; return; } ;;
+		sdebug)  [[ $TT_MODE == sdebug ]] ||
+				 { echo "needs --scsi-debug (removes and re-adds the device)"; return; } ;;
 		inject)  [[ ${HAVE_INJECT:-0} -eq 1 ]] ||
 				 { echo "needs scsi_debug error injection (--scsi-debug, debugfs)"; return; } ;;
 		multilun) [[ ${#PEERS[@]} -gt 0 ]] || { echo "needs a second tape LUN on the same target"; return; } ;;
