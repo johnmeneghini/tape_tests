@@ -315,6 +315,13 @@ tt_set_cmd_timeout() {	# seconds, for the primary device's request queue
 tt_restore_all() {
 	[[ $TT_MODE == sdebug ]] && sdebug_clear_injections
 	local v
+	# settings a test changed on the drive (B10, B11)
+	if restore_take door_lock > /dev/null; then
+		tc op "$DEV" unlock > /dev/null 2>&1
+	fi
+	if v=$(restore_take compression); then
+		tc op "$DEV" compression "$v" > /dev/null 2>&1
+	fi
 	if v=$(restore_take sdebug_delay); then
 		echo "$v" > /sys/bus/pseudo/drivers/scsi_debug/delay 2>/dev/null ||
 			{ sleep 1; echo "$v" > /sys/bus/pseudo/drivers/scsi_debug/delay; }

@@ -5,7 +5,7 @@ positioning, and above all how st behaves when the device is reset or SCSI
 error handling intervenes.  Every test that touches the tape ends by reading
 the whole tape back and comparing it byte for byte with what should be there.
 
-This manual covers version 2.14.
+This manual covers version 2.25.
 
 1. [Requirements](#1-requirements)
 2. [Quick start](#2-quick-start)
@@ -80,8 +80,8 @@ tape and unloads the module at the end.  Refuses to run if scsi_debug is
 already loaded unless `--reuse-scsi-debug`.
 
 The real st driver runs; only the device is emulated.  This mode also runs
-the tests that need deterministic fault injection (E01-E04, R11) and a
-second LUN (R12, E03).
+the tests that need deterministic fault injection (E01-E04, R11), a
+second LUN (R12, E03), and removing and re-adding the device (H01).
 
 Limits of the emulation:
 
@@ -201,7 +201,7 @@ hardware.
 
 | Option | |
 |---|---|
-| `-s, --suite LIST` | `basic,reset,eh,boundary,stress` (default: all but `stress`) |
+| `-s, --suite LIST` | `basic,reset,eh,boundary,hotplug,stress` (default: all but `stress`) |
 | `-t, --test LIST` | test ids or globs, e.g. `-t 'R03.*,R05.lu'` |
 | `-x, --exclude LIST` | ids or globs to skip |
 | `-l, --list` | show every test and whether/why it would be skipped, then exit |
@@ -299,7 +299,8 @@ list corruption or refcount errors fails the test.
 ## 8. Test catalogue
 
 Requirements: `any` runs everywhere; `long` needs `--long` on hardware;
-`inject` needs scsi_debug; `multilun` needs a second tape LUN on the same
+`inject` needs scsi_debug error injection; `sdebug` needs `--scsi-debug`
+(the test removes and re-adds the device); `multilun` needs a second tape LUN on the same
 target; `partitions` needs scsi_debug or a drive with can-partitions;
 `bus`/`host`/`link` need the corresponding `--allow-*` option.
 
@@ -330,6 +331,10 @@ differently (R10.bot sees 0:0 after a reset at BOT), and tapetest notes it.
 | B07 | sysfs I/O statistics account for the traffic |
 | B08 | consecutive filemarks produce empty files and keep file numbering |
 | B09 | MTLOAD of an already loaded tape at EOD resets the position and the EOF state: reading works afterwards (warning on unpatched st, finding 3) |
+| B10 | MTCOMPRESSION 1/0: the drive's compression page (DCE) follows; data written compressed reads back with compression off; EIO and skip if the drive cannot change compression |
+| B11 | MTLOCK/MTUNLOCK succeed; with debug_flag=1 the st log shows the lock was sent and survived close() (only an automatic lock is dropped at close) |
+| B12 | variable block sizes 4k/16k/64k/256k: exact readback; a larger buffer returns one block per read; a smaller buffer fails with ENOMEM and the block is consumed |
+| B13 | a write and a read stopped with SIGSTOP and continued with SIGCONT complete with correct data |
 
 ### reset
 
@@ -369,6 +374,21 @@ differently (R10.bot sees 0:0 after a reset at BOT), and tapetest notes it.
 | X03 | reset while in partition 1: rewind returns to partition 1 and its data is intact |
 | X05 | write in partition 0, switch to 1, MTLOAD on the same file: no filemark written at the beginning of partition 0 |
 | X04 | MTLOAD while in partition 1: st records partition 0, and a later MTSETPART 1 really switches back |
+
+### hotplug (scsi_debug)
+
+| ID | Proves |
+|---|---|
+| H01 | the device is removed (sysfs `delete`) and re-added (host `scan`) repeatedly while several processes open and close the no-rewind node: no use-after-free of the `scsi_tape` between `st_remove()` and `st_open()`/`scsi_tape_get()`, the device comes back under the same st name, and opens succeed again |
+
+H01 is a race test.  Its window is a few instructions wide, so a clean run
+is evidence rather than proof, and a use-after-free is usually silent
+without KASAN: on a kernel without `CONFIG_KASAN` the result says so
+(UNVERIFIED).  Run it on a debug kernel.  `TT_HOTPLUG_CYCLES` (default 50)
+and `TT_HOTPLUG_OPENERS` (default 4) set the number of remove/add cycles
+and opening processes.  scsi_debug discards a LUN's tape when the device is
+removed, so the next test rebuilds the baseline layout; st options from
+stinit.conf are applied again to the re-added device.
 
 ### stress
 
@@ -592,7 +612,7 @@ Useful helpers:
 | `kmsg_expect REGEX DESC` | kernel message logged during this test |
 | `pass`, `fail`, `warn`, `note`, `unverified`, `skip_test`, `abort_test` | results |
 
-Requirement keywords: `any hw long bus host link inject multilun partitions`.
+Requirement keywords: `any hw long bus host link inject sdebug multilun partitions`.
 
 Before committing a change, run `shellcheck -x -e SC2034,SC2154 tapetest
 lib/*.sh tests/*.sh` and `./selftest.sh`.
