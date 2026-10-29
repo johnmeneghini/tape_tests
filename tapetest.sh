@@ -17,7 +17,7 @@ export TT_LIB
 # shellcheck source=lib/reset.sh
 . "$TT_LIB/reset.sh"
 
-TT_VERSION=2.25
+TT_VERSION=2.26
 
 declare -ga TT_IDS=()
 declare -gA TT_SUITE=() TT_REQ=() TT_DESC=()
