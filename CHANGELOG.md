@@ -18,6 +18,9 @@
   HBA finding for that test, which skips; later tests keep using it, so a
   recurring failure is reported each time rather than hiding every later
   reset test behind one SKIP.
+* HBA messages name the driver also when the host's proc_name reads
+  "(null)" (qla2xxx): the name of the driver bound to the host's parent
+  device is used instead.
 
 ## 2.25
 
