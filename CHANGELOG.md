@@ -12,6 +12,12 @@
   tests now check for a refused method before starting the background
   process, and stop it (R16 also turns auto-lock off) when the reset fails
   inside the test.
+* A reset method is only put on the run's refused list when it fails
+  before it has ever succeeded in the run (an HBA that does not implement
+  it).  A method that worked earlier and then fails once is reported as an
+  HBA finding for that test, which skips; later tests keep using it, so a
+  recurring failure is reported each time rather than hiding every later
+  reset test behind one SKIP.
 
 ## 2.25
 
