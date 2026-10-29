@@ -27,8 +27,18 @@ sas_phy_of() {
 }
 
 # Name of the low-level driver of the device's host, for messages.
+# proc_name reads "(null)" when the LLD's host template does not set it
+# (seen with qla2xxx); fall back to the driver bound to the host's parent
+# device (the PCI function for an FC HBA).
 tt_lld_name() {
-	cat "/sys/class/scsi_host/host${HCTL%%:*}/proc_name" 2>/dev/null || echo "this HBA"
+	local h=/sys/class/scsi_host/host${HCTL%%:*} n d
+	n=$(cat "$h/proc_name" 2>/dev/null)
+	if [[ -z $n || $n == "(null)" ]]; then
+		d=$(readlink -f "$h/device/.." 2>/dev/null)
+		n=""
+		[[ -n $d && -e $d/driver ]] && n=$(basename "$(readlink -f "$d/driver")")
+	fi
+	echo "${n:-this HBA}"
 }
 
 # A reset method the HBA refused before it ever succeeded is not tried again
