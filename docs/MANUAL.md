@@ -307,7 +307,11 @@ target; `partitions` needs scsi_debug or a drive with can-partitions;
 Resets are sent with `sg_reset --no-esc`, so a device or target reset the
 HBA refuses is not escalated by the kernel to a bus or host reset.  A
 refused method makes its test SKIP, naming the driver (e.g. smartpqi does
-not do target resets), and later tests using it skip at once.
+not do target resets), and later tests using it skip at once.  This only
+applies to a method that has not succeeded yet in the run: if a method
+that worked before fails (for example a TMF that times out while a large
+transfer is streaming), only that test skips with an HBA finding, and
+later tests keep using the method.
 
 Partition tests on hardware: can-partitions is normally 0 in stinit.conf,
 so X03-X05 would skip.  A hardware run that selects them with

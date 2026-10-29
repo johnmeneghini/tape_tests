@@ -31,8 +31,12 @@ tt_lld_name() {
 	cat "/sys/class/scsi_host/host${HCTL%%:*}/proc_name" 2>/dev/null || echo "this HBA"
 }
 
-# A reset method the HBA refused once is not tried again in this run: a
-# refused target reset can take minutes and stalls the device's IO meanwhile.
+# A reset method the HBA refused before it ever succeeded is not tried again
+# in this run: a refused target reset can take minutes and stalls the
+# device's IO meanwhile.  A method that worked earlier in the run and then
+# fails once (e.g. a TMF that times out under load) is an HBA finding for
+# that test only; later tests keep using it, so a recurring failure is
+# reported every time it happens instead of once.
 reset_unsupported() {	# method -> 0 if known to be refused here
 	grep -qx "$1" "$TT_RUN/reset-unsupported" 2>/dev/null
 }
@@ -69,11 +73,17 @@ do_reset() {
 			fail "$m reset via $sg could not be issued (rc=$rc): $out"
 			return 1
 		fi
+		if grep -qx "$m" "$TT_RUN/reset-ok" 2>/dev/null; then
+			hba_finding "$m reset via $sg failed on $(tt_lld_name) after succeeding earlier in this run (rc=$rc): $out; this test is skipped, later tests still try $m resets, this is not an st result"
+			[[ ${_RESET_DEFER:-0} -eq 1 ]] && return 2
+			skip_test "$m reset failed on $(tt_lld_name) (worked earlier in this run)"
+		fi
 		echo "$m" >> "$TT_RUN/reset-unsupported"
 		hba_finding "$m reset via $sg refused by $(tt_lld_name) (rc=$rc): $out; affected tests are skipped, this is not an st result"
 		[[ ${_RESET_DEFER:-0} -eq 1 ]] && return 2
 		skip_test "$m reset is not supported by $(tt_lld_name)"
 	fi
+	grep -qx "$m" "$TT_RUN/reset-ok" 2>/dev/null || echo "$m" >> "$TT_RUN/reset-ok"
 	log "    >>> $m reset issued via $sg"
 	[[ $TT_SETTLE -gt 0 ]] && sleep "$TT_SETTLE"
 	return 0
