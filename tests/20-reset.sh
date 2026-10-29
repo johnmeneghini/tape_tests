@@ -246,16 +246,23 @@ done
 unset _n
 
 t_R07() {
-	local node=$DEV k id=30 prog=$TT_TDIR/hold.progress wr cl
+	local node=$DEV k id=30 prog=$TT_TDIR/hold.progress wr cl rrc
 	[[ $1 == st ]] && node=$REWDEV
+	# skip before the writer holds the device open, not after
+	reset_require lu
 	layout_ensure_baseline
 	k=$(layout_count)
 	step "write a file through $node, reset after the last write() returns, before close()"
 	tc_bg "$TT_TDIR/bg.out" write "$node" --src "$(data_file $id)" --bs "$TT_BS" \
 		--pre eod --hold "$TT_HOLD" --progress "$prog" --progress-bytes 1
 	wait_file "$prog.done" "$TT_IO_TMO" || { tc_bg_wait; abort_test "writer never finished writing"; }
-	do_reset lu
+	# a refused reset must not leave the writer holding the device open
+	_RESET_DEFER=1 do_reset lu; rrc=$?
 	tc_bg_wait
+	if [[ $rrc -eq 2 ]]; then
+		layout_dirty "lu reset refused while the writer held $node open"
+		skip_test "lu reset failed on $(tt_lld_name)"
+	fi
 	wr=${R[errno_write]}; cl=${R[errno_close]}
 	check_eq "$wr" 0 "all write() calls returned success before the reset"
 	note "close() after reset returned $cl"
@@ -490,10 +497,12 @@ t_R15() {
 # log ("Locking drive door."), which needs debug_flag=1.
 tt_register R16 reset any "auto-lock: door locked again after a reset on the same open file"
 t_R16() {
-	local rdy=$TT_TDIR/session.ready go=$TT_TDIR/session.go mark
+	local rdy=$TT_TDIR/session.ready go=$TT_TDIR/session.go mark rrc
 	[[ $TT_MODE == mock ]] && skip_test "needs a real st (kernel debug log)"
 	[[ $(cat /sys/bus/scsi/drivers/st/debug_flag 2>/dev/null) == 1 ]] ||
 		skip_test "needs st debug_flag=1 (the door lock is seen in the st debug log)"
+	# skip before the session holds the device open and waits for the reset
+	reset_require lu
 	layout_ensure_baseline
 	expect_ok "enable auto-lock" op "$DEV" setbool 0x40 || return
 	# one fd: rewind, read (locks), [reset], rewind (sees the reset),
@@ -508,9 +517,14 @@ t_R16() {
 	fi
 	check_eq "${R[step2_errno]:-0}" 0 "first read on the open file"
 	mark=$(kmsg_mark)
-	do_reset lu
+	# a refused reset must still release the session (it waits on $go)
+	_RESET_DEFER=1 do_reset lu; rrc=$?
 	touch "$go"
 	tc_bg_wait
+	if [[ $rrc -eq 2 ]]; then
+		tc op "$DEV" clearbool 0x40
+		skip_test "lu reset failed on $(tt_lld_name)"
+	fi
 	check_eq "${R[step6_errno]}" 0 "rewind after the reset recovers"
 	check_eq "${R[step7_errno]}" 0 "read after reset and rewind on the same open file"
 	if kmsg_since "$mark" | grep -q "Locking drive door"; then

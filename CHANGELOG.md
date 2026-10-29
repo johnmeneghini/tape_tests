@@ -1,5 +1,18 @@
 # Changes
 
+## 2.26
+
+* R07 and R16 no longer abort the run when an LU reset fails.  Both start
+  a background process that holds the tape open across the reset (R07: a
+  writer that has not closed yet; R16: a session waiting for the reset).
+  A refused reset made the test SKIP without stopping that process, so the
+  between-test cleanup got EBUSY and the remaining tests were not run (seen
+  on an HP LTO-5 behind qla2xxx: the TMF for an LU reset timed out in R06,
+  R07.nst then left the writer running and 26 tests did not run).  Both
+  tests now check for a refused method before starting the background
+  process, and stop it (R16 also turns auto-lock off) when the reset fails
+  inside the test.
+
 ## 2.25
 
 Four basic tests that close the remaining gaps against the legacy kernel-qe
