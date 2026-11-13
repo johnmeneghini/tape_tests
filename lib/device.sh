@@ -305,6 +305,34 @@ tt_set_st_debug() {
 	echo "$1" > $f
 }
 
+# Console loglevel.  printk writes to the console synchronously, so with st
+# debugging on, every ILI read or check condition prints several lines on
+# the console before the next command is issued.  On a serial console that
+# throttled the ILI-heavy tests (B04, B12) on an HP LTO-5 from 273 to
+# 8 reads/s.  The per-test log checks read the ring buffer, which gets every
+# message whatever the console level is, so the run lowers the console
+# level to 1 (KERN_ALERT and above) and puts it back at exit.
+TT_PRINTK=/proc/sys/kernel/printk
+
+tt_quiet_console() {
+	local cur
+	cur=$(awk '{print $1}' $TT_PRINTK 2>/dev/null)
+	TT_CONSOLE="loglevel=${cur:-?}"
+	[[ $cur =~ ^[0-9]+$ ]] || return 0
+	if [[ ${TT_KEEP_CONSOLE:-0} -eq 1 ]]; then
+		TT_CONSOLE="$TT_CONSOLE (kept, --keep-console)"
+		[[ ${TT_ST_DEBUG:-0} != 0 && $cur -gt 5 ]] &&
+			log "note: console loglevel $cur with st debugging on: ILI-heavy tests (B04, B12) will be limited by console output speed"
+	elif [[ $cur -gt 1 ]]; then
+		restore_save console_loglevel "$cur"
+		echo 1 > $TT_PRINTK ||
+			{ restore_take console_loglevel > /dev/null; log "note: cannot lower the console loglevel"; return 0; }
+		TT_CONSOLE="loglevel=$cur -> 1 (restored at exit)"
+		log "console loglevel $cur -> 1 for the run (the ring buffer and journald keep every message; --keep-console to leave it)"
+	fi
+	export TT_CONSOLE
+}
+
 tt_set_cmd_timeout() {	# seconds, for the primary device's request queue
 	local f=$TT_SDEV_SYS/timeout
 	[[ -w $f ]] || return 1
@@ -336,6 +364,9 @@ tt_teardown() {
 	local v
 	if v=$(restore_take st_debug); then
 		echo "$v" > $ST_DRV/debug_flag
+	fi
+	if v=$(restore_take console_loglevel); then
+		echo "$v" > $TT_PRINTK || log "warning: could not restore the console loglevel to $v"
 	fi
 	if [[ $TT_LOADED_SDEBUG -eq 1 ]]; then
 		command -v udevadm >/dev/null && udevadm settle

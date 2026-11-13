@@ -33,6 +33,7 @@ usage: release-check [-d DEV --yes] [options]
       --allow-bus-reset / --allow-host-reset / --allow-link-reset
                         passed to the hardware stages
       --no-st-debug     reload st with debug_flag=0 in every stage (quiet log)
+      --keep-console    leave the console loglevel alone in every stage
       --luns N          scsi_debug LUNs (default 2)
       --skip STAGE      skip a stage (repeatable): selftest sdebug hw-basic hw-reset
       --compare DIR     previous release-check directory to diff verdicts against
@@ -59,6 +60,7 @@ while [[ $# -gt 0 ]]; do
 	--allow-bus-reset|--allow-host-reset|--allow-link-reset) HWOPTS+=("$1") ;;
 	--luns)        LUNS=$2; shift ;;
 	--no-st-debug) STOPTS+=(--no-st-debug) ;;
+	--keep-console) STOPTS+=(--keep-console) ;;
 	--skip)        SKIP+=("$2"); shift ;;
 	--compare)     COMPARE=$2; shift ;;
 	-o|--out)      OUT=$2; shift ;;

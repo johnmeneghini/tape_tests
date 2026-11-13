@@ -17,7 +17,7 @@ export TT_LIB
 # shellcheck source=lib/reset.sh
 . "$TT_LIB/reset.sh"
 
-TT_VERSION=2.26
+TT_VERSION=2.27
 
 declare -ga TT_IDS=()
 declare -gA TT_SUITE=() TT_REQ=() TT_DESC=()
@@ -67,6 +67,9 @@ st driver setup (hw and scsi-debug modes; default: all on):
       --no-st-debug       reload st with debug_flag=0 (quiet kernel log)
       --no-stinit         do not apply stinit.conf (scsi2logical is still enforced)
       --st-debug          with --no-reload-st: set st debug_flag at runtime
+      --keep-console      leave the console loglevel alone (default: lowered
+                          to 1 for the run and restored at exit, because
+                          st debug output on a slow console throttles I/O)
 
 output:
   -o, --out DIR           results directory (default ./results/<timestamp>)
@@ -109,6 +112,7 @@ while [[ $# -gt 0 ]]; do
 	--no-st-debug)   TT_ST_DEBUG_LEVEL=0 ;;
 	--no-stinit)     TT_NO_STINIT=1 ;;
 	--st-debug)      STDEBUG=1 ;;
+	--keep-console)  TT_KEEP_CONSOLE=1 ;;
 	-o|--out)        OUTDIR=$2; shift ;;
 	--stop-on-fail)  STOP=1 ;;
 	-v|--verbose)    TT_VERBOSE=1 ;;
@@ -240,6 +244,7 @@ if [[ $TT_MODE == hw && $YES -ne 1 ]]; then
 	exit 2
 fi
 [[ $STDEBUG -eq 1 && ${TT_ST_RELOADED:-0} -ne 1 ]] && tt_set_st_debug 1
+[[ $TT_MODE != mock ]] && tt_quiet_console
 
 # ---------------------------------------------------------------------------
 # partition support on hardware
@@ -307,6 +312,8 @@ fi
 	echo "features: position_lost_in_reset=$HAVE_POS_LOST can_partitions=$CAN_PART inject=$HAVE_INJECT"
 	[[ $TT_MODE != mock ]] &&
 	echo "st:       reloaded=${TT_ST_RELOADED:-0} debug_flag=${TT_ST_DEBUG:-?} options=${TT_ST_OPTIONS:-?} stinit=${TT_STINIT:-?}"
+	[[ $TT_MODE != mock ]] &&
+	echo "console:  ${TT_CONSOLE:-?}"
 	echo "profile:  bs=$TT_BS file=$TT_FILE_BYTES inflight=$TT_INFLIGHT_BYTES fixed_bs=$TT_FIXED_BS verify=$TT_VERIFY"
 	echo "resets:   $(reset_methods)"
 	[[ -n $PART_NOTE ]] && echo "$PART_NOTE"
