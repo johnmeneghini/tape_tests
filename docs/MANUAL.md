@@ -140,6 +140,7 @@ Options:
 | `--no-st-debug` | reload st with `debug_flag=0`: clean state and stinit, but a quiet kernel log |
 | `--no-stinit` | skip stinit; `scsi2logical` is still enforced |
 | `--st-debug` | with `--no-reload-st`: set `debug_flag` at runtime |
+| `--keep-console` | leave the console loglevel alone (see below) |
 
 **The reload fails if any process holds a tape node open**, including a
 second path to the same drive.  The error names the holding PIDs.
@@ -148,6 +149,21 @@ second path to the same drive.  The error names the holding PIDs.
 If the ring buffer wraps, a message could fall out before the per-test scan
 reads it.  Consider `log_buf_len=16M` on the kernel command line; journald
 keeps the complete log regardless.
+
+**Console loglevel**: printk writes to the console synchronously, so the
+task that logs waits for the console.  With st debugging on, every read
+that ends in a check condition (ILI on an over-length variable-mode read,
+filemark, EOD) logs several lines, and on a serial console that becomes the
+limit: on an HP LTO-5 the over-length reads in B04 and B12 ran at 8 reads/s
+instead of 273, turning B12 into a multi-hour test.  tapetest therefore
+lowers the console loglevel to 1 for the run (`console:` in the run header
+shows the change) and restores it at exit, including after Ctrl-C or a
+harness error.  Nothing is lost: the ring buffer and journald get every
+message, and the per-test log checks read the ring buffer.  Use
+`--keep-console` when watching a serial console live; with debugging on and
+a console loglevel above 5 the run then prints a note that B04/B12 will be
+slow.  A run killed with SIGKILL cannot restore the level: reset it with
+`dmesg -n <level>` (the original level is in `<results>/restore/console_loglevel`).
 
 ### stinit.conf
 
@@ -676,6 +692,7 @@ even if an earlier one failed, so one report shows the whole picture.
 | `--stress N` | add the stress stage |
 | `--allow-bus-reset`, `--allow-host-reset`, `--allow-link-reset` | passed to the hardware stages |
 | `--no-st-debug` | reload st with `debug_flag=0` in every stage (much quieter kernel log) |
+| `--keep-console` | leave the console loglevel alone in every stage |
 | `--luns N` | scsi_debug LUNs (default 2) |
 | `--skip STAGE` | skip a stage (repeatable) |
 | `--compare DIR` | a previous release-check directory; per-test verdict changes are listed |

@@ -1,5 +1,18 @@
 # Changes
 
+## 2.27
+
+* The console loglevel is lowered to 1 for the run and restored at exit
+  (normal exit, Ctrl-C, harness error).  printk writes to the console
+  synchronously, and with st debugging on each over-length variable-mode
+  read logs its ILI check condition: on an HP LTO-5 with a serial console
+  (RHEL 8) the over-length reads in B04 and B12 ran at 8 reads/s instead
+  of 273, so B12 alone took hours.  The ring buffer and journald still get
+  every message and the per-test log checks are unchanged.  The run header
+  has a new `console:` line.  `--keep-console` (also accepted by
+  release-check) leaves the level alone and, with debugging on and a level
+  above 5, notes that B04/B12 will be slow.
+
 ## 2.26
 
 * R07 and R16 no longer abort the run when an LU reset fails.  Both start
